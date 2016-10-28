@@ -1,0 +1,3 @@
+[submodule "Symnet"]
+	path = Symnet
+	url = git@github.com:calincru/Symnet.git
