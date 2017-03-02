@@ -1,3 +1,7 @@
 [submodule "Symnet"]
-	path = Symnet
-	url = git@github.com:calincru/Symnet.git
+  path = Symnet
+  url = git@github.com:calincru/Symnet.git
+
+[submodule "iptables-sefl"]
+  path = iptables-sefl
+  url = git@github.com:calincru/iptables-sefl.git
