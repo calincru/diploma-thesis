@@ -1,0 +1,307 @@
+\documentclass[twoside, 11pt, a4paper]{article}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Any additional packages needed should be included after csmr.  %
+% Note that csmr.sty includes epsfig, amssymb and graphicx,      %
+% and defines many common macros, such as 'proof' and 'example'. %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{csmr}
+\usepackage[cp1250]{inputenc}
+\usepackage{fancyhdr}
+\usepackage[super]{nth}
+\usepackage{paralist}
+\usepackage{wrapfig}
+\usepackage{listings}
+
+% Definitions of handy macros can go here
+
+%\newcommand{\dataset}{{\cal D}}
+%\newcommand{\fracpartial}[2]{\frac{\partial #1}{\partial  #2}}
+
+% Heading arguments are {volume}{nmber}{submitted}{published}{author-full-names}
+
+% \csmrheading{1}{1}{2017}
+
+% Short headings should be running head and authors last names
+
+\ShortHeadings{1}{1}{2017}{Formal Analysis of iptables Configurations}{Calin Cruceru}
+
+\begin{document}
+
+\title{Formal Analysis of iptables Configurations}
+
+\author{\name Calin Cruceru\\
+       \addr University POLITEHNICA of Bucharest\\
+       Faculty of Automatic Control and Computers, Computer Science Department\\
+       \email E-mail: calin.cruceru@stud.acs.upb.ro}
+
+\maketitle
+
+\begin{abstract}
+
+As modern networks become increasingly complex and more and more operators move
+towards Network Function Virtualization as a way of reducing costs for
+purchasing and upgrading middleboxes, verifying certain properties of
+networks built around \texttt{iptables}-enabled devices becomes one of the
+top priorities in network verification today.  Therefore, in this article we
+create a model of an iptables-enhanced router which can be fed to SymNet, a
+fast symbolic execution tool for stateful networks and show how it can be
+used in practice.
+
+\end{abstract}
+
+\begin{keywords}
+network verification, symbolic execution, iptables, Scala
+\end{keywords}
+
+\section{Introduction}
+Modern networks have grown to the point where understanding the way their
+components interact with each other is beyond most administrators' ability. In
+fact, studies have shown that more than 62\% of network failures today are due
+to network misconfiguration \cite{alimi2008shadow}. Consequently, applying
+formal verification methods to networking problems has not been motivated just
+by the theoretical challenges it poses, but also by a practical need.
+
+In addition to that, more and more x86 infrastructure is being deployed for
+networking purposes. A specific direction which has gained popularity lately
+is Network Function Virtualization (NFV), a network architecture concept that
+unifies virtualization and networking by running the functionality provided by
+middleboxes as software on commodity hardware \cite{stoenescu2015net}. The idea
+has been taken even further by operators who have spotted the potential cost
+benefits and are planning to extend their services to become cloud providers
+specialized for in-network processing \cite{stoenescu2015net}.
+
+When speaking about running network functions on x86 hardware, we immediately
+have to refer to \texttt{Netfilter}, the customizable framework provided by the
+Linux kernel that offers various functions and operations for packet filtering,
+packet mangling and Network Address Translation (NAT), thus enabling most of
+the functions featured by dedicated firewalls. These functions are
+administrated through \texttt{iptables}, its better-known user-space
+counterpart, allowing us to refer to them almost interchangeably.
+
+To understand the increased interest in iptables we have to look once again at
+the cloud computing world.  OpenStack, an open-source software platform for
+cloud computing, relies heavily for its networking component, Neutron, on
+iptables which is used for filtering and NAT both in its core infrastructure
+and, on top of that, by its users. One common problem is that tool-generated
+rules do not always compose as expected with the ones managed by users.
+
+We propose a way to model an iptables-enabled device (a software router built
+around Netfilter) using SEFL \cite{stoenescu2016symnet}, a network description
+language that is \emph{symbolic execution} friendly and SymNet, a tool for
+static network checking. It can then be easily plugged in large networks and
+reveal the aforementioned conflicts.  We have implemented this model in Scala
+and early tests show that it can catch common iptables misconfigurations.
+
+\section{Network Verification}
+Network correctness can refer to a couple of different things. The most
+well-studied problem is \emph{reachability}, which can be stated as simple as
+
+\begin{quote}
+\emph{Given two points in the network, A and B, can A reach B?}
+\end{quote}
+
+It might be the case that we want to ensure that this \emph{does} happen, or
+that it \emph{does not}.  It can also be adjusted to more restricted scenarios,
+such as specifying the \nth{4} layer protocol to use.  Another, rather general
+question that we might ask is
+
+\begin{quote}
+\emph{Is the policy of the operator properly enforced?}
+\end{quote}
+
+It is abstract because \emph{policy} is not well-defined in this context.  It
+could refer to some access control policy, such as \emph{no department should
+have access to the management VLAN}, or a security policy as in \emph{all
+packets entering a tunnel end-point should be encrypted}. In fact, there is
+ongoing effort to bring policy specification closer to the natural language and
+integrate it with existing network verification systems.
+
+To answer these questions, we build a \emph{model} of the network.  We start
+with a constraint: we only consider the \emph{data plane} of the network
+elements.  That is, we verify network's functionality at an instant, as opposed
+to over-time, in which case the entire control plane (i.e. dynamic routing
+algorithms, SDN controllers, etc) should be modeled, which is currently not
+feasible. This is called \textbf{static checking} \cite{stoenescu2013symnet}
+and it is the main trade-off made to enable tractable network verification.
+
+Implementation-wise, \textbf{symbolic execution} offers the best guarantees,
+considering its long and successful history in \emph{software verification}
+\cite{cadar2008klee} and the fact that careful crafting of network description
+languages can get around its worst-case exponential complexity. Symbolic
+Execution Friendly Language (SEFL) \cite{stoenescu2016symnet} is such a
+language. Its truly innovative insight is that focusing on \emph{flows} instead
+of packets increases its expressiveness by extending the set of networks that
+it can model to include stateful ones. Therefore, network functions are
+described as simple \emph{flow transformations}.
+
+SymNet is the network analysis tool that takes as input a network model given
+as the SEFL descriptions of all network elements and their connections. It
+initiates symbolic execution by injecting an empty (symbolic) packet on a
+user-specified port, symbolically executes SEFL instructions associated with it
+and then follows the outgoing links.  It does so until either
+\begin{inparaenum}[i)]
+  \item there are no outgoing links,
+  \item an explicit SEFL \emph{Fail} instruction is encountered, or
+  \item a loop is detected.
+\end{inparaenum}
+At the end, it outputs all possible symbolic paths, as well as their
+constraints, port history and metadata (rewritings performed by NATs, tunnels,
+encryption, etc).
+
+Results show that SymNet, powered by SEFL models, scales linearly with the size
+of the modeled network \cite{stoenescu2016symnet} and, thus, can be used to
+verify large networks.  The requirement is to be able to build models for all
+the network elements they consist of.
+
+\section{iptables}
+iptables is an administration tool for IP packet filtering/NAT based on
+Netfilter, a collection of modules and customizable hooks that powers
+Linux-based firewalls. While iptables is just the user-space application that
+forwards the requests to Netfilter, where all rules and the logic for
+filtering, mangling and NAT reside, it is common to implicitly include all of
+its underpinnings when referring to \emph{iptables}.
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+  \vspace{-20pt}
+  \begin{center}
+    \includegraphics[width=0.48\textwidth]{tables_traverse}
+  \end{center}
+  \vspace{-20pt}
+  \caption{iptables forwarding path}
+  \vspace{-10pt}
+  \label{iptables}
+\end{wrapfigure}
+
+iptables has a modular organization (Figure \ref{iptables}), making it easy to
+control \textbf{which} traffic is matched, \textbf{when} it can be matched
+against and \textbf{what} happens with it. Its building blocks are the
+following:
+
+\begin{itemize}
+  \item \emph{Rule}, composed of matching conditions and a target that gives
+    the action performed when all of them are true.
+
+  \item \emph{Chain}, an ordered list of rules which are checked against
+    sequentially.  If it is one of the 5 built-in chains, it has a well-defined
+    place during packet processing when it is traversed.  For example, NAT can
+    be performed only in the \texttt{PREROUTING}, \texttt{OUTPUT} and
+    \texttt{POSTROUTING} chains. New chains can be defined and used as targets
+    in rules.
+
+  \item \emph{Table}, contains multiple chains and restricts what is allowed to
+    do in a rule. For example, in the \texttt{filter} table we can only
+    \texttt{DROP} and \texttt{ACCEPT} packets, while in the \texttt{nat} table
+    we can do Source NAT (\texttt{SNAT}) and Destination NAT (\texttt{DNAT}).
+    Another constraint is that it is not possible to jump to a user-defined
+    chain from another table.
+\end{itemize}
+
+We only model a strict subset of iptables. This is because, firstly, some
+features depend on the local process, such as the special target \texttt{QUEUE}
+which passes the packet to userspace.  Secondly, some other features depend
+on the control plane, which is ignored, as explained before; an example is the
+\texttt{MASQUERADE} target in the \texttt{nat} table which is similar to
+\texttt{SNAT} with the difference that it is used for dynamically assigned IP
+connections.  Since we are looking only at a snapshot of an iptables
+deployment, the way the IP addresses are obtained is not important.
+
+The high-level model of an iptables-enabled router (Figure
+\ref{iptables-model}) looks similar to the previous flowchart, only that each
+circle that represents a chain is now a SEFL \emph{element} that contains the
+entire logic for traversing a chain.  There are also three routing decisions,
+as opposed to only one in a regular router.  The way a router is modeled using
+SEFL (and, implicitly, its routing decision \emph{element}), has been already
+discussed in \cite{stoenescu2016symnet}, the only difference is that we add
+special logic for checking if the destination IP address of the analyzed packet
+is a local one, which results in forwarding the packet to the local process.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.8\textwidth]{iptables-model}
+  \caption{iptables model}
+  \label{iptables-model}
+\end{figure}
+
+As mentioned before, the local process is neither modeled, nor verified.
+However, the chains corresponding to its output are still of interest as they
+can be tested by exporting the input port of the \emph{Local RD} element and
+injecting symbolic packets into it.
+
+At a first thought, it would seem that modeling chain traversal is as simple as
+a big If/Then/Else statement which has a "depth" equal to the number of rules.
+However, besides the exponential number of constraints it generates, there
+is another, more subtle problem: besides the possibility to \emph{jump} to a
+user-defined chain, it is also possible to \texttt{RETURN} back from it and
+continue traversing the original chain from the successor of the rule that
+caused the jump. This means that we have to \emph{remember} that specific rule
+as part of the flow and add additional links between the chains which are
+\emph{connected} in this way.
+
+\section{Implementation}
+The tool that resulted from the above modelling is called
+\texttt{iptables-to-sefl} \cite{github-repo} and is essentially a translator
+that targets SymNet by generating a SEFL model of an iptables-enabled device.
+Its design resembles a compiler; it takes as input raw tables which contain
+multiple chains, and each chain can have multiple rules.  It then goes through
+the following pipeline:
+
+\begin{itemize}
+  \item \emph{Parsing}.  Given that rules are simple enough, the parser is a
+    monadic LL(*) one, inspired by Parser \cite{leijen2002parsec}.  The result
+    is an in-memory model of the given rules.
+  \item \emph{Validation}.  This step is analogue to semantic analysis in
+    compilers; it ensures that the given rules are correctly formatted.  Things
+    which are hard to catch during parsing require a separate validation step
+    include:
+    \begin{itemize}
+      \item Forward references to user-defined chains
+      \item Catching missing built-in chains and tables (\texttt{filter} and
+        \texttt{nat} must be provided)
+      \item Protocols mentioned as part of the \texttt{-p <protocol>} match
+        extension must be supported
+    \end{itemize}
+  \item \emph{SEFL code generation}.  The code for each rule is kept separately
+    from the actual model (the links between chains which jump to one another,
+    etc), making it straightforward to add new match/target extensions.  The
+    \emph{codegen} part refers precisely to that: generating SEFL code for each
+    supported match and target.  For instance, the code which matches the
+    source address of a packet (e.g. \texttt{-s 192.168.18.0/24} in iptables)
+    is shown below.
+\end{itemize}
+
+\begin{lstlisting}[language=scala,label={codegen}]
+override def seflConstrain(ip: Ipv4): Option[Instruction] = {
+  val (lower, upper) = ip.toHostRange
+
+  Some(Constrain(IPSrc, :&:(:>=:(ConstantValue(lower.host)),
+                            :<=:(ConstantValue(upper.host)))))
+}
+\end{lstlisting}
+
+Finally, the resulted box which hides all its functionality internally can be
+linked to other network elements through its exposed input and output ports,
+leading to more complex networks ready to be fed to SymNet.
+
+\section{Future Work}
+One feature that could enable many other extensions and is not yet supported is
+\emph{connection tracking}.  This is a feature that would make great use of
+SEFL's expressiveness as it is a stateful processing.  Extending
+iptables-to-sefl to support it is one of the top priorities.
+
+It is followed in priority order by optimizing SEFL code which is generated for
+chain traversal; currently, as aforementioned, it is simply a big If/Then/Else
+statement, which generates too many constraints.  However, a more clever
+algorithm could probably be devised in order to find and remove redundant
+constraints.  In fact, work in this direction is already being conducted, as
+similar code is generated by different scenarios.
+
+Lastly, \emph{additional testing} is required to make sure that the model
+scales to very large iptables deployments and for various use cases.
+
+\vskip 0.2in
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

@@ -1,0 +1,246 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% File: csmr.sty
+% CSMR - Computer Science Master Research
+% http://csmr.cs.pub.ro/
+%
+% Original Author:  Florin Pop
+% Last edited: 2010
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\typeout{Document Style `csmr' -- 2010.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% REQUIRED PACKAGES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{amssymb}
+\RequirePackage{graphicx}
+\RequirePackage{ifpdf}
+
+%\RequirePackage{algorithm}
+%\RequirePackage{algorithmic}
+
+\RequirePackage{url}
+\RequirePackage{multirow}
+\RequirePackage{lscape}
+\RequirePackage{subfigure}
+
+\RequirePackage{longtable}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PAGE SIZE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\topfraction}{0.95}   % let figure take up nearly whole page
+\renewcommand{\textfraction}{0.05}  % let figure take up nearly whole page
+
+% Specify the dimensions of each page
+\oddsidemargin .25in           %   Note \oddsidemargin = \evensidemargin
+\evensidemargin .25in
+\marginparwidth 0.07 true in
+\topmargin -0.5in
+\addtolength{\headsep}{0.25in}
+\textheight 8.5 true in        % Height of text (including footnotes & figures)
+\textwidth 6.0 true in         % Width of text line.
+\widowpenalty=10000
+\clubpenalty=10000
+\@twosidetrue \@mparswitchtrue \def\ds@draft{\overfullrule 5pt}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SECTIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\@startsiction#1#2#3#4#5#6{\if@noskipsec \leavevmode \fi
+   \par \@tempskipa #4\relax
+   \@afterindenttrue
+   \ifdim \@tempskipa <\z@ \@tempskipa -\@tempskipa \@afterindentfalse\fi
+   \if@nobreak \everypar{}\else
+     \addpenalty{\@secpenalty}\addvspace{\@tempskipa}\fi \@ifstar
+     {\@ssect{#3}{#4}{#5}{#6}}{\@dblarg{\@sict{#1}{#2}{#3}{#4}{#5}{#6}}}}
+
+\def\@sict#1#2#3#4#5#6[#7]#8{\ifnum #2>\c@secnumdepth
+     \def\@svsec{}\else
+     \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname}\fi
+     \@tempskipa #5\relax
+      \ifdim \@tempskipa>\z@
+        \begingroup #6\relax
+          \@hangfrom{\hskip #3\relax\@svsec.\hskip 0.1em}
+                    {\interlinepenalty \@M #8\par}
+        \endgroup
+       \csname #1mark\endcsname{#7}\addcontentsline
+         {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                      \protect\numberline{\csname the#1\endcsname}\fi
+                    #7}\else
+        \def\@svsechd{#6\hskip #3\@svsec #8\csname #1mark\endcsname
+                      {#7}\addcontentsline
+                           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                             \protect\numberline{\csname the#1\endcsname}\fi
+                       #7}}\fi
+     \@xsect{#5}}
+
+\def\@sect#1#2#3#4#5#6[#7]#8{\ifnum #2>\c@secnumdepth
+     \def\@svsec{}\else
+     \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname\hskip 0.5em }\fi
+     \@tempskipa #5\relax
+      \ifdim \@tempskipa>\z@
+        \begingroup #6\relax
+          \@hangfrom{\hskip #3\relax\@svsec}{\interlinepenalty \@M #8\par}
+        \endgroup
+       \csname #1mark\endcsname{#7}\addcontentsline
+         {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                      \protect\numberline{\csname the#1\endcsname}\fi
+                    #7}\else
+        \def\@svsechd{#6\hskip #3\@svsec #8\csname #1mark\endcsname
+                      {#7}\addcontentsline
+                           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                             \protect\numberline{\csname the#1\endcsname}\fi
+                       #7}}\fi
+     \@xsect{#5}}
+
+\def\thesection {\arabic{section}}
+\def\thesubsection {\thesection.\arabic{subsection}}
+\def\thesubsubsection {\thesubsection.\arabic{subsubsection}}
+\def\section{\@startsiction{section}{1}{\z@}{-0.24in}{0.10in}
+             {\large\bf\raggedright}}
+\def\subsection{\@startsection{subsection}{2}{\z@}{-0.20in}{0.08in}
+                {\normalsize\bf\raggedright}}
+\def\subsubsection{\@startsection{subsubsection}{3}{\z@}{-0.18in}{0.08in}
+                {\normalsize\it\raggedright}}
+\def\paragraph{\@startsiction{paragraph}{4}{\z@}{1.5ex plus
+  0.5ex minus .2ex}{-1em}{\normalsize\bf}}
+\def\subparagraph{\@startsiction{subparagraph}{5}{\z@}{1.5ex plus
+  0.5ex minus .2ex}{-1em}{\normalsize\bf}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FOOTNOTES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\long\def\@makefntext#1{\@setpar{\@@par\@tempdima \hsize
+             \advance\@tempdima-15pt\parshape \@ne 15pt \@tempdima}\par
+             \parindent 2em\noindent \hbox to \z@{\hss{\@thefnmark}. \hfil}#1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ABSTRACT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewenvironment{abstract}
+{\centerline{\large\bf Abstract}%
+  \bgroup\leftskip 20pt\rightskip 20pt\small\noindent}%
+{\par\egroup\vskip 0.25ex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% KEYWORDS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newenvironment{keywords}
+{\bgroup\leftskip 20pt\rightskip 20pt \small\noindent{\bf Keywords:} }%
+{\par\egroup\vskip 0.25ex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FIRST PAGE, TITLE, AUTHOR
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newlength\aftertitskip     \newlength\beforetitskip
+\newlength\interauthorskip  \newlength\aftermaketitskip
+
+%% Changeable parameters.
+\setlength\aftertitskip{0.1in plus 0.2in minus 0.2in}
+\setlength\beforetitskip{0.05in plus 0.08in minus 0.08in}
+\setlength\interauthorskip{0.08in plus 0.1in minus 0.1in}
+\setlength\aftermaketitskip{0.3in plus 0.1in minus 0.1in}
+
+%% overall definition of maketitle, @maketitle does the real work
+\def\maketitle{\par
+ \begingroup
+   \def\thefootnote{\fnsymbol{footnote}}
+   \def\@makefnmark{\hbox to 0pt{$^{\@thefnmark}$\hss}}
+   \@maketitle \@thanks
+ \endgroup
+\setcounter{footnote}{0}
+ \let\maketitle\relax \let\@maketitle\relax
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+
+\def\@startauthor{\noindent \normalsize\bf}
+\def\@endauthor{}
+\def\@maketitle{\vbox{\hsize\textwidth
+ \linewidth\hsize \vskip \beforetitskip
+ {\begin{center} \Large\bf \@title \par \end{center}} \vskip \aftertitskip
+ {\def\and{\unskip\enspace{\rm and}\enspace}%
+  \def\addr{\small\it}%
+  \def\email{\small\it}%
+  \def\name{\normalsize\bf}%
+  \begin{center}\@startauthor \@author \@endauthor\end{center}}
+  \vskip \aftermaketitskip
+  \vskip \aftermaketitskip
+}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PAGESTYLE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\firstpageno#1{\setcounter{page}{#1}}
+
+\def\csmrheading#1#2#3{\def\ps@csmrtps{\let\@mkboth\@gobbletwo%
+\def\@oddhead{\scriptsize\sc CSMR, Vol. #1, No. #2 (#3) \hfill }%\hfill ISSN: xxxx-xxxx}%
+\def\@oddfoot{}%
+\def\@evenhead{}\def\@evenfoot{}}%
+\thispagestyle{csmrtps}}
+
+\def\ShortHeadings#1#2#3#4#5{\def\ps@csmrps{\let\@mkboth\@gobbletwo%
+\def\@oddhead{\hfill {\scriptsize\sc SSPS - Scientific Student Projects Session, May 2017} \hfill}%
+\def\@oddfoot{\hfill \small\rm  \hfill}%
+\def\@evenhead{{\scriptsize\sc #5} \hfill {\scriptsize\sc #4}}%
+\def\@evenfoot{\hfill \small\rm  \hfill}}%
+\pagestyle{csmrps}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MISCELLANY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\figurecaption#1#2{\noindent\hangindent 40pt
+                       \hbox to 36pt {\small\sl #1 \hfil}
+                       \ignorespaces {\small #2}}
+\def\figurecenter#1#2{\centerline{{\small\sl #1} #2}}
+\def\figurecenter#1#2{\centerline{{\small\sl #1} {\small #2}}}
+
+%  Allow ``hanging indents'' in long captions
+\long\def\@makecaption#1#2{
+   \vskip 10pt
+   \setbox\@tempboxa\hbox{#1: #2}
+   \ifdim \wd\@tempboxa >\hsize               % IF longer than one line:
+       \begin{list}{#1:}{
+       \settowidth{\labelwidth}{#1:}
+       \setlength{\leftmargin}{\labelwidth}
+       \addtolength{\leftmargin}{\labelsep}
+        }\item #2 \end{list}\par   % Output in quote mode
+     \else                                    %   ELSE  center.
+       \hbox to\hsize{\hfil\box\@tempboxa\hfil}
+   \fi}
+
+% Define strut macros for skipping spaces above and below text in a
+% tabular environment.
+\def\abovestrut#1{\rule[0in]{0in}{#1}\ignorespaces}
+\def\belowstrut#1{\rule[-#1]{0in}{#1}\ignorespaces}
+
+% Acknowledgments
+\long\def\acks#1{\vskip 0.3in\noindent{\large\bf Acknowledgments}\vskip 0.2in
+\noindent #1}
+
+% Research Note
+\long\def\researchnote#1{\noindent {\LARGE\it Research Note} #1}
+
+\renewcommand{\appendix}{\par
+  \setcounter{section}{0}
+  \setcounter{subsection}{0}
+  \def\thesection{\Alph{section}}
+\def\section{\@ifnextchar*{\@startsiction{section}{1}{\z@}{-0.24in}{0.10in}%
+             {\large\bf\raggedright}}%
+{\@startsiction{section}{1}{\z@}{-0.24in}{0.10in}
+             {\large\bf\raggedright Appendix\ }}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROOF, THEOREM, and FRIENDS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\BlackBox}{\rule{1.5ex}{1.5ex}}  % end of proof
+\newenvironment{proof}{\par\noindent{\bf Proof\ }}{\hfill\BlackBox\\[2mm]}
+\newtheorem{example}{Example}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{axiom}[theorem]{Axiom}
