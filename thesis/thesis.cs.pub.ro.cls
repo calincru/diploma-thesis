@@ -32,7 +32,7 @@
 \usepackage{parskip}
 
 % package for variable line spacing (1, 1.5, 2)
-% usage: write \onehalfspacing before the part which should be 
+% usage: write \onehalfspacing before the part which should be
 % with 1.5 line spacing
 % for example, in "thesis.tex" before "\input{src/main}" will make
 % all the chapters with 1.5 line spacing
@@ -42,15 +42,15 @@
 % http://www.tug.org/applications/hyperref/manual.html
 \usepackage{hyperref}
 \hypersetup{%
-	colorlinks=true,
-	linkcolor=blue,
-	anchorcolor=black,
-	citecolor=black,
-	filecolor=blue,
-	menucolor=black,
-	urlcolor=blue,
-	bookmarks=true,
-	bookmarksnumbered=true
+  colorlinks=true,
+  linkcolor=blue,
+  anchorcolor=black,
+  citecolor=black,
+  filecolor=blue,
+  menucolor=black,
+  urlcolor=blue,
+  bookmarks=true,
+  bookmarksnumbered=true
 }
 \urlstyle{sf}
 
@@ -65,10 +65,10 @@
 \usepackage{listings}
 
 \lstset{
-	numbers=left, numberstyle=\footnotesize,
-	frame=lines, captionpos=b,
-	breaklines=true,
-	basicstyle=\ttfamily
+  numbers=left, numberstyle=\footnotesize,
+  frame=lines, captionpos=b,
+  breaklines=true,
+  basicstyle=\ttfamily
 }
 
 % notations and abbreviations
@@ -84,8 +84,8 @@
 
 % to be used in the main .tex file
 \newcommand{\printabbrev}{
-	\printnomenclature
-	\newpage
+  \printnomenclature
+  \newpage
 }
 
 \makenomenclature
@@ -160,8 +160,8 @@
 \renewenvironment{abstract}{\null\vfil\prefacesection{Abstract}}{\par\vfill\null}
 
 \def\prefacesection#1{%
-	\chapter*{#1}
-	\addcontentsline{toc}{chapter}{#1}}
+  \chapter*{#1}
+  \addcontentsline{toc}{chapter}{#1}}
 
 % Added by Y.N. Srikant
 \def\keywords{\prefacesection{Keywords}}
@@ -200,12 +200,12 @@
 
 % command for specifying TODOs
 \newcommand{\todo}[1]{
-	\colorbox{yellow}{
-		\begin{minipage}{15cm}
-			\textbf{TODO:}\\
-			#1
-		\end{minipage}
-	}
+  \colorbox{yellow}{
+    \begin{minipage}{15cm}
+      \textbf{TODO:}\\
+      #1
+    \end{minipage}
+  }
 }
 
 % command for formatting inline functions
@@ -230,9 +230,9 @@
 %   TODO: references should point to the top of the image
 \newcommand{\fig}[4][]{
 \begin{figure}[htb]
-	\begin{center}
-		\includegraphics[#1]{#2}
-		\caption{#4 \label{#3}}
+  \begin{center}
+    \includegraphics[#1]{#2}
+    \caption{#4 \label{#3}}
     \end{center}
 \end{figure}
 }
