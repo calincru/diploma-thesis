@@ -43,7 +43,7 @@
 \usepackage{hyperref}
 \hypersetup{%
   colorlinks=true,
-  linkcolor=blue,
+  linkcolor=black,
   anchorcolor=black,
   citecolor=black,
   filecolor=blue,
@@ -63,6 +63,9 @@
 
 % Code listings support
 \usepackage{listings}
+
+% Nicer code listings
+\usepackage{minted}
 
 \lstset{
   numbers=left, numberstyle=\footnotesize,
