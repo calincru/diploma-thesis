@@ -64,8 +64,19 @@
 % Code listings support
 \usepackage{listings}
 
+%%%%%%%%%%%%%%%
+% Added by me
+%%%%%%%%%%%%%%
 % Nicer code listings
 \usepackage{minted}
+\usepackage{soul}
+\usepackage{color}
+\usepackage[dvipsnames]{xcolor}
+
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+\newenvironment{sourcecode}[1]
+{\inputminted[linenos=true,frame=single,bgcolor=bg,fontsize=\footnotesize]{scala}{#1}}
+{}
 
 \lstset{
   numbers=left, numberstyle=\footnotesize,
@@ -227,6 +238,10 @@
 % commands for creating labeled hyper-linked references
 \newcommand{\labelindexref}[2]{\hyperref[#2]{#1~\ref*{#2}}}
 \newcommand{\labelref}[2]{\hyperref[#2]{#1}}
+
+% highlighted texttt
+\definecolor{codegray}{gray}{0.9}
+\newcommand{\hltexttt}[1]{\texttt{{\sethlcolor{codegray}\hl{#1}}}}
 
 % command for inserting labeled figures
 % Usage: \fig{file}{label}{caption}

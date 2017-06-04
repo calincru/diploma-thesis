@@ -1,25 +1,59 @@
-\chapter{Introduction}\label{chapter:intro}
+\chapter{Introduction}
 
-\section{Motivation}\label{sec:motivation}
+\section{Motivation}
 
-This is a footnote \footnote{\url{www.google.com}}.  This is a section
-reference \labelindexref{Section}{sub-sec:proj-scope}.  Here we define the
-CS\abbrev{CS}{Computer Science} abbreviation.  This is a citation
-\cite{stoenescu2016symnet}.  Here we refer listing \ref{lst:example}.
+Modern networks have grown to the point where understanding the way their
+components interact with each other is beyond most administrators' ability. In
+fact, studies have shown that more than 62\% of network failures today are due
+to network misconfiguration \cite{alimi2008shadow}.  In addition to that,
+hardware-based network appliances, while essential in today's operational
+networks, bring about even more complexity: they are expensive, complex to
+manage and introduce new failure modes \cite{sherry2012making}.
 
-% Inline Listing example
-\begin{listing}[H]
-  \caption{Example of a listing.}
-  \label{lst:example}
-  \begin{minted}[linenos=true, frame=single, bgcolor=bg]{scala}
-  case class LocalProcess(name: String)
-    extends RegularVirtualDevice[Unit](name, 1, 0, ()) {
+At the same time, more and more x86 infrastructure is being deployed for
+networking purposes. One particular direction which has gained popularity lately
+is Network Function Virtualization (NFV)\abbrev{NFV}{Network Function
+Virtualization}, a network architecture concept that unifies virtualization and
+networking by running the functionality provided by middleboxes as software on
+commodity hardware \cite{martins2014clickos, stoenescu2015net}. The idea has
+been taken even further by operators who have spotted the potential cost
+benefits and are planning to extend their services to become cloud providers
+specialized for in-network processing \cite{stoenescu2015net}, which is bound
+to intensify this trend.
 
-    def inputPort: Port = inputPort(0)
+When speaking about running network functions on x86 hardware, we immediately
+have to refer to \textbf{netfilter}, the customizable framework provided by the
+Linux kernel that offers various functions and operations for packet filtering,
+packet mangling and Network Address Translation (NAT)\abbrev{NAT}{Network
+Address Translation}, thus enabling most of the functions featured by dedicated
+firewalls. For IPv4 traffic, these functions are administrated through
+\textbf{iptables}, its better-known user-space counterpart, allowing us to
+refer to them almost interchangeably.
 
-    // We accept all packets that reach the input port.
-    override def portInstructions: Map[Port, Instruction] =
-      Map(inputPort -> NoOp)
-  }
-  \end{minted}
-\end{listing}
+To understand the increased interest in iptables we have to look once again at
+the cloud computing world.  OpenStack, an open-source software platform for
+cloud computing, relies heavily for its networking component, Neutron, on
+iptables which is used for filtering, NAT and implementing security groups, to
+name a few, both in its core infrastructure and, on top of that, by its users
+\cite{denton2014learning}.  One common problem that arises here is that
+tool-generated rules do not always compose as expected with the ones managed by
+users.
+
+In this context, it is clear that applying formal verification methods to
+networking problems is motivated not just by the theoretical challenges it
+poses, but also by practical needs.  Driven by this insight, we propose a way
+to model an iptables-enabled device (a software router built around netfilter)
+using SEFL\abbrev{SEFL}{Symbolic Execution Friendly Language}, a network
+description language that is \textbf{symbolic execution} friendly, and SymNet,
+a tool for static network checking \cite{stoenescu2016symnet,
+stoenescu2013symnet}.  Together, they assemble into a state-of-the-art
+framework that enables scalable stateful network verification.
+
+The resulting tool, naturally called iptables-to-sefl, and summing up to
+approximately 8k Scala LOC (including unit tests), compiles iptables
+deployments to SEFL models which can then be plugged into large networks and
+reveal configuration errors or, more generally, policy inconsistencies.
+Therefore, it is a step forward towards the goal of verifying more and more
+diverse networks.
+
+\section{Challenges}
