@@ -68,6 +68,10 @@
 % Added by me
 %%%%%%%%%%%%%%
 % Nicer code listings
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
 \usepackage{minted}
 \usepackage{soul}
 \usepackage{color}
@@ -77,6 +81,8 @@
 \newenvironment{sourcecode}[1]
 {\inputminted[linenos=true,frame=single,bgcolor=bg,fontsize=\footnotesize]{scala}{#1}}
 {}
+
+\newtheorem{definition}{Definition}[section]
 
 \lstset{
   numbers=left, numberstyle=\footnotesize,
@@ -241,7 +247,9 @@
 
 % highlighted texttt
 \definecolor{codegray}{gray}{0.9}
+\definecolor{mathgray}{gray}{0.95}
 \newcommand{\hltexttt}[1]{\texttt{{\sethlcolor{codegray}\hl{#1}}}}
+\newcommand{\hlmath}[1]{{\sethlcolor{mathgray}\hl{#1}}}
 
 % command for inserting labeled figures
 % Usage: \fig{file}{label}{caption}

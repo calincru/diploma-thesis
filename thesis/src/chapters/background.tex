@@ -1,10 +1,192 @@
-\chapter{Background}\label{chapter:background}
+\chapter{Background}
 
-\section{Static network verification}
-\subsection{Symbolic execution}
+This chapter introduces the concepts which form the building blocks for our
+iptables model, making use of the extensive work conducted by Stoenescu et. al
+\cite{stoenescu2013symnet, stoenescu2016symnet}.
 
-\section{SymNet and SEFL}
+We first give a short overview of the broad field of network verification, with
+an emphasis on the approach that we use: static verification powered by
+symbolic execution.  We then show how it is implemented in SymNet, and how
+SymNet can be used to verify the models we build.  Finally, we go into details
+about iptables; we discuss its internal organization, as well as its most
+common features.
+
+\section{Network verification}\label{sec:network-verification}
+\todo{what is \emph{formal verification}}
+
+\paragraph{Correctness.}\label{par:correctness}
+Network verification is merely formal verification tailored for network-related
+questions.  But in order to do so, we need to provide a rigorous definition for
+network correctness.  It turns out that this is by itself a very involved task.
+Being abstract is what one might try in order to get around this formalism:
+
+\begin{definition}[Network correctness]
+\label{def:full-correctness}
+A network behaves correctly as long as it complies to operator's policy.
+\end{definition}
+
+At first, this definition does not seem to accomplish much, as what it
+essentially does is to delegate the requirement by introducing the need to
+formally define a \emph{policy}, or, more precisely, its composing rules.
+Therefore, the follow-up question that arises is:
+
+\begin{quote}
+What is a (policy) rule and how is it specified?
+\end{quote}
+
+In fact, there is ongoing work that focuses on bringing policy specification
+closer to the natural language, on one hand, and the automation of policy
+proving, on the other hand.  The latter, called \textbf{policy-driven network
+verification}, could significantly reduce verification run-times, similar to
+the way \emph{informed search} algorithms compare to the uninformed ones on
+large search spaces.  Another analogy stems from the field of automatic theorem
+proving: policy-based verification resembles the \emph{forward chaining}
+inference method, by propagating packets through the modelled network (a
+procedure further detailed in \labelindexref{Section}{sub-sec:symb-exec}) until
+either the policy is proved or a contradiction is reached.
+
+A complementary approach, rather than an alternative, which proves more
+practical by circumventing the need for a correctness definition that covers
+all desired properties is to specialize the verification to specific goals.
+So, instead of a \emph{proper} correctness definition, we could define multiple
+\emph{partial} ones:
+
+\begin{definition}[Partial network correctness - Connectivity]
+If the network behaves correctly, then nodes A and B should have bi-directional
+connectivity.
+\end{definition}
+
+\begin{definition}[Partial network correctness - Encrypted traffic]
+If the network behaves correctly, then the TCP traffic between Alice and Bob
+should be encrypted.
+\end{definition}
+
+Notice the \hlmath{$correctness \implies property$} form, instead of
+\hlmath{$correctness \iff policy$}, in
+\labelindexref{Definition}{def:full-correctness}.  Still, using simple logic
+rules, if we admit that the policy is a conjunction of rules,
+\hlmath{$P = r_1 \wedge r_2 \wedge ... \wedge r_n$}, and we prove
+\hlmath{$r_i$, $\mbox{for } i = 1,...,n$}, then
+\hlmath{$correctness \implies P$}.  Since the reverse implication is implicit,
+this yields the same equivalence.  Therefore, by decomposing the policy into
+its defining rules not only do we get an easier to implement verification
+system, but we also reach the same theoretical result, provided that all rules
+are known.  In practice, however, policy specification is an iterative process,
+which makes this approach even more suitable.
+
+\paragraph{Modelling and verification procedure.}
+The other two essential ingredients needed to apply formal verification to
+networking problems are a model of the network and a specific procedure for
+proving or disproving its correctness.  The model is an abstract (i.e.
+mathematical) representation of the network that can be easily handled by the
+proof procedure.  Probably the most well-established proof procedure is model
+checking \cite{clarke1999model} which does an exhaustive exploration of the
+states a system can be in to verify that a given property holds.
+
+Some of the modelling/verification techniques which have been considered over
+time, are the following:
+
+\begin{itemize}
+  \item Modelling the network as a \textbf{distributed system}, where each
+    network element (i.e. computing node) has its own associated \emph{C
+    code}, and then running symbolic execution
+    (\labelindexref{Section}{sub-sec:symb-exec}) on it.  This approach has two
+    major downsides:
+      \begin{enumerate}[label=(\roman*)]
+        \item Currently, symbolic execution becomes intractable when run on
+          large C programs, and
+        \item Having to consider all possible interleavings of different
+          threads, as in any other parallel model, makes it inapplicable even
+          for small C programs.
+      \end{enumerate}
+  \item Creating a simplified model of both the \textbf{control plane} and
+    the \textbf{data plane} of each network element and simulate their
+    interactions.  However, modelling the control plane is hard to achieve in
+    practice, because:
+    \begin{enumerate}[label=(\roman*)]
+      \item Many processes that are part of it are asynchronous, which means
+        that they inherit all the downsides of modelling distributed systems;
+        examples include dynamic routing protocols updates and
+        SDN\abbrev{SDN}{Software-Defined Networking} controller updates.
+      \item Building on the previous one, control planes are usually very
+        complex, especially since more and more middleboxes become fundamental
+        in today's networks.  However, one way to simplify the process of
+        modelling it is to specialize the model for one particular process
+        \cite{weitz2016bagpipe, fogel2015general}.
+    \end{enumerate}
+  \item Only model the data plane of the network in such a way that processing
+    logic which does not affect packet flows is ignored.  This is called
+    \textbf{static data plane verification} and can be nicely combined with
+    \textbf{symbolic execution} to verify certain properties, if a suitable
+    model is built.
+\end{itemize}
+
+The last one is of particular interest to us as it seems to be the best
+trade-off between model accuracy and verification complexity.  Therefore, it is
+further discussed in the next two sections.
+
+But before that, it is worth briefly introducing one of the principal
+alternatives to model-based static network verification, \textbf{Dynamic
+Network Testing} (also known as \emph{packet injection}). As a testing
+technique, rather than a formal verification one, it runs on the actual network
+infrastructure in a specially configured, isolated environment.  Some network
+hosts, called \emph{test agents}, generate traffic according to some test cases
+and evaluate the results of each network element that is subject to testing.
+However, its downsides greatly overweight its advantages:
+
+\begin{itemize}
+  \item The search space is implicitly defined by the test cases, which means
+    that a good coverage corresponds to an (exponentially) large number of
+    tests.
+  \item Adding to the previous point, there is an inherent bias introduced by
+    having the test cases cover commonly observed behaviours, without exploring
+    unexpected ones, which might lead to failures.
+  \item Overall, it is more expensive to perform and requires more resources
+    than static analysis.
+\end{itemize}
+
+\subsection{Static data plane verification}
+
+\todo{what it is, image, what are its limitations (assumptions) -- mention
+model - actual system equivalence issue (i.e. its usually enforced by
+construction in formal verification, but we relax some constraints}
+
+\subsection{Symbolic execution}\label{sub-sec:symb-exec}
+
+\todo{briefly what it is, an example on C code, path explosion - another
+listing with many ifs}
+\todo{mention KLEE, etc}
+
+\section{SymNet and SEFL}\label{sec:symnet-sefl}
+
+\todo{SymNet - uses static network verification on a model of the network
+constructed with a network description DSL - SEFL}
+\todo{SymNet - key novelty is SEFL, being able to model stateful networks}
+\todo{SEFL - most important features, If, Constrain, :==:, :>=:, Fail, Forward}
+\todo{SEFL - how we can express state}
+
 \subsection{Building network models with SEFL}
+
+\todo{directed graphs, nodes (commonly referred to as ports, because they also
+include the actual ports of each device we model) have associated SEFL code that gets executed when
+a packet reaches that node; edges - links between nodes (i.e. wires between
+ports, but not only), src -> dst, many to one relation, so not really "wires".}
+
 \subsection{Interpreting the results}
 
+\todo{what it means to "run" SymNet - insert symbolic packet; what is symbolic
+packet? etc}
+\todo{what is the output - exhaustive list of possible paths together with the
+constraints on each header/metadata field; hard to interpret; simplify: think
+about particular rules to test and only use symbolic fields for the fields
+which are of interest.}
+
 \section{iptables}
+\todo{what it is, netfilter, initial project was called netfilter/iptables;
+iptables6 for IPv6 traffic, etc}
+
+\subsection{Organization}
+\todo{tables/chains, their purpose, etc}
+
+\subsection{Extensions}
+\todo{Mention match extensions and target extensions}
