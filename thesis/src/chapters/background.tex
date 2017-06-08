@@ -71,68 +71,75 @@ rules, if we admit that the policy is a conjunction of rules,
 this yields the same equivalence.  Therefore, by decomposing the policy into
 its defining rules not only do we get an easier to implement verification
 system, but we also reach the same theoretical result, provided that all rules
-are known.  In practice, however, policy specification is an iterative process,
-which makes this approach even more suitable.
+are known.  In addition to that, policy specification is an iterative process
+in practice, making this approach even more desirable.
 
 \paragraph{Modelling and verification procedure.}
 The other two essential ingredients needed to apply formal verification to
 networking problems are a model of the network and a specific procedure for
 proving or disproving its correctness.  The model is an abstract (i.e.
 mathematical) representation of the network that can be easily handled by the
-proof procedure.  Probably the most well-established proof procedure is model
-checking \cite{clarke1999model} which does an exhaustive exploration of the
-states a system can be in to verify that a given property holds.
+proof procedure.  The most well-established proof procedure is \textbf{model
+checking} \cite{clarke1999model} which does an exhaustive exploration of the
+states a system can be in to verify that a given property holds.  However, for
+large models that result even from moderately sized networks, it is an
+intractable approach.
 
-Some of the modelling/verification techniques which have been considered over
-time, are the following:
-
+Some modelling/verification techniques which have been considered over time
+are:
 \begin{itemize}
   \item Modelling the network as a \textbf{distributed system}, where each
-    network element (i.e. computing node) has its own associated \emph{C
-    code}, and then running symbolic execution
-    (\labelindexref{Section}{sub-sec:symb-exec}) on it.  This approach has two
+    network element (i.e. computing node) has its own corresponding \emph{C
+    code}, and then running symbolic execution (discussed in
+    \labelindexref{Section}{sub-sec:symb-exec}) on it.  This approach has two
     major downsides:
       \begin{enumerate}[label=(\roman*)]
-        \item Currently, symbolic execution becomes intractable when run on
-          large C programs, and
+        \item Currently, symbolic execution rapidly reaches its worst-case
+          exponential complexity when run on large C programs, and
         \item Having to consider all possible interleavings of different
-          threads, as in any other parallel model, makes it inapplicable even
+          threads, as in any other parallel model, makes it unsuitable even
           for small C programs.
       \end{enumerate}
-  \item Creating a simplified model of both the \textbf{control plane} and
-    the \textbf{data plane} of each network element and simulate their
-    interactions.  However, modelling the control plane is hard to achieve in
-    practice, because:
+  \item Creating a simplified model of both the \textbf{control plane} and the
+    \textbf{data plane} of each network element and simulate their interactions
+    (\labelindexref{Figure}{fig:control-data-verif}).  However, modelling the
+    control plane is hard to achieve in practice, because:
     \begin{enumerate}[label=(\roman*)]
       \item Many processes that are part of it are asynchronous, which means
         that they inherit all the downsides of modelling distributed systems;
-        examples include dynamic routing protocols updates and
-        SDN\abbrev{SDN}{Software-Defined Networking} controller updates.
+        examples include dynamic routing protocols updates and SDN
+        (Software-defined networking)\abbrev{SDN}{Software-Defined Networking}
+        controller updates.
       \item Building on the previous one, control planes are usually very
         complex, especially since more and more middleboxes become fundamental
         in today's networks.  However, one way to simplify the process of
         modelling it is to specialize the model for one particular process
         \cite{weitz2016bagpipe, fogel2015general}.
     \end{enumerate}
-  \item Only model the data plane of the network in such a way that processing
-    logic which does not affect packet flows is ignored.  This is called
-    \textbf{static data plane verification} and can be nicely combined with
-    \textbf{symbolic execution} to verify certain properties, if a suitable
-    model is built.
+  \item Model only the data plane of the network in such a way that processing
+    logic which does not affect packet flows is ignored
+    (\labelindexref{Figure}{fig:control-data-verif}).  When combined with
+    \textbf{symbolic execution}, the result is a scalable
+    \textbf{static data plane verification} approach that features one of the
+    best trade-offs between model accuracy and verification complexity.
+    Therefore, it is further discussed in the next two sections.
 \end{itemize}
 
-The last one is of particular interest to us as it seems to be the best
-trade-off between model accuracy and verification complexity.  Therefore, it is
-further discussed in the next two sections.
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.5]{src/img/control-data}
+  \caption{Control/data plane verification.}
+  \label{fig:control-data-verif}
+\end{figure}
 
-But before that, it is worth briefly introducing one of the principal
-alternatives to model-based static network verification, \textbf{Dynamic
-Network Testing} (also known as \emph{packet injection}). As a testing
-technique, rather than a formal verification one, it runs on the actual network
-infrastructure in a specially configured, isolated environment.  Some network
-hosts, called \emph{test agents}, generate traffic according to some test cases
-and evaluate the results of each network element that is subject to testing.
-However, its downsides greatly overweight its advantages:
+It is also worth briefly introducing one of the principal alternatives to
+model-based static network verification, \textbf{Dynamic Network Testing} (also
+known as \emph{packet injection}). As a testing technique, rather than a formal
+verification one, it runs on the actual network infrastructure in a specially
+configured, isolated environment.  Some network hosts, called \emph{test
+agents}, generate traffic according to some test cases and evaluate the results
+of each network element that is subject to testing.  However, its downsides
+greatly overweight its advantages:
 
 \begin{itemize}
   \item The search space is implicitly defined by the test cases, which means
@@ -147,9 +154,49 @@ However, its downsides greatly overweight its advantages:
 
 \subsection{Static data plane verification}
 
-\todo{what it is, image, what are its limitations (assumptions) -- mention
-model - actual system equivalence issue (i.e. its usually enforced by
-construction in formal verification, but we relax some constraints}
+Starting from the observation that including control planes in our models with
+the end goal of verifying multiple properties of large (i.e.  enterprise-sized)
+networks does not scale, we are left with the smaller part of each network
+device: its data plane.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.3]{src/img/data-plane-snapshot}
+  \caption{Data plane/control plane decoupling.}
+  \label{fig:data-plane-snapshot}
+\end{figure}
+
+Data planes (often \textbf{forwarding planes}) include only the \emph{rules}
+needed by devices to expose the functionality they are designed for.  For
+example, the data plane of a router is represented by its routing table, and,
+possibly, packet filtering ACLs (Access Control Lists)\abbrev{ACL}{Access
+Control List}.  A switch takes its decisions based on the Media Access Control
+(MAC)\abbrev{MAC}{Media Access Control} table. Both of these tables are
+specific instances of the more general Forwarding Information Base
+(FIB)\abbrev{FIB}{Forwarding Information Base}, a name that refers to the
+specialized hardware components responsible for forwarding in various network
+devices.
+
+Limiting our models to the data plane of the network can lead to two opposite
+views:
+\begin{enumerate}[label=(\roman*)]
+  \item As a downside, for ignoring the other half that makes up a network
+    device: its rule-making processes, the control plane.
+  \item As an approach that enables scalable verification, based on the insight
+    that, even if short-lived, the data plane of a network is what dictates its
+    operation at an instant.
+\end{enumerate}
+
+The second point constitutes the motivation behind the framework described in
+\labelindexref{Section}{sec:symnet-sefl}.  Another way of looking at it is that
+we simply ignore any process that leads to the current network
+\emph{configuration} and establish whether it is a correct one or not.  If it
+is, then an incremental analysis can be applied from that point forward: this
+implies analyzing only the updates that reach the data plane, a technique which
+has already been studied in the neighbouring field of software verification
+\cite{marinescu2013katch}.  If our initial verification reports failure, human
+intervention is required in order to detect the problem in the control plane
+that caused the unexpected rule in the data plane.
 
 \subsection{Symbolic execution}\label{sub-sec:symb-exec}
 
@@ -159,8 +206,16 @@ listing with many ifs}
 
 \section{SymNet and SEFL}\label{sec:symnet-sefl}
 
+\todo{briefly present section}
+
+\subsection{Overview}
+
 \todo{SymNet - uses static network verification on a model of the network
 constructed with a network description DSL - SEFL}
+\todo{mention model - actual system equivalence issue (i.e. its usually
+enforced by construction in formal verification, but we relax some constraints
+(global vars, etc)}
+
 \todo{SymNet - key novelty is SEFL, being able to model stateful networks}
 \todo{SEFL - most important features, If, Constrain, :==:, :>=:, Fail, Forward}
 \todo{SEFL - how we can express state}
