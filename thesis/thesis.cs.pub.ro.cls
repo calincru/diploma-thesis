@@ -73,13 +73,15 @@
 \usepackage{amssymb}
 \usepackage{enumitem}
 \usepackage{minted}
+\usepackage{parcolumns}
+\usepackage{wrapfig}
 \usepackage{soul}
 \usepackage{color}
 \usepackage[dvipsnames]{xcolor}
 
 \definecolor{bg}{rgb}{0.95,0.95,0.95}
-\newenvironment{sourcecode}[1]
-{\inputminted[linenos=true,frame=single,bgcolor=bg,fontsize=\footnotesize]{scala}{#1}}
+\newenvironment{sourcecode}[2]
+{\inputminted[linenos=true,frame=single,bgcolor=bg,fontsize=\footnotesize]{#1}{#2}}
 {}
 
 \newtheorem{definition}{Definition}[section]
@@ -276,3 +278,6 @@
 
 % mathematical formulas
 \usepackage{amsmath}
+
+% this only works here?
+\usepackage{tikz}

@@ -79,14 +79,16 @@ The other two essential ingredients needed to apply formal verification to
 networking problems are a model of the network and a specific procedure for
 proving or disproving its correctness.  The model is an abstract (i.e.
 mathematical) representation of the network that can be easily handled by the
-proof procedure.  The most well-established proof procedure is \textbf{model
-checking} \cite{clarke1999model} which does an exhaustive exploration of the
-states a system can be in to verify that a given property holds.  However, for
-large models that result even from moderately sized networks, it is an
-intractable approach.
+proof procedure.
 
-Some modelling/verification techniques which have been considered over time
-are:
+The most well-established proof procedure is \textbf{model checking}
+\cite{clarke1999model, mcmillan2003model} which does an exhaustive exploration
+of the states a system can be in to verify that a given property holds. Another
+technique which has been thoroughly explored is \emph{reduction to SAT}
+(AntEater \cite{mai2011debugging}).  However, for large models that result even
+from moderately sized networks the aforementioned approaches render the
+verification problem intractable.  Other modelling/verification techniques
+which have been considered over time are:
 \begin{itemize}
   \item Modelling the network as a \textbf{distributed system}, where each
     network element (i.e. computing node) has its own corresponding \emph{C
@@ -177,8 +179,8 @@ specific instances of the more general Forwarding Information Base
 specialized hardware components responsible for forwarding in various network
 devices.
 
-Limiting our models to the data plane of the network can lead to two opposite
-views:
+Our limiting of the models to network data planes can be interpreted in two
+opposite ways:
 \begin{enumerate}[label=(\roman*)]
   \item As a downside, for ignoring the other half that makes up a network
     device: its rule-making processes, the control plane.
@@ -200,6 +202,84 @@ that caused the unexpected rule in the data plane.
 
 \subsection{Symbolic execution}\label{sub-sec:symb-exec}
 
+Symbolic execution is a means of statically analyzing a program in order to
+find the inputs that cause certain parts of it to be executed.  It results in a
+tree with each node representing a possible state in its execution and edges
+corresponding to state transitions caused by executing the next instruction on
+that specific path.  Therefore, execution paths in the analyzed program
+correspond to state chains starting from the root of the symbolic execution
+tree.  A state, in this context, is a collection of variables together with
+their constraints expressed in terms of symbolic inputs of the program and/or
+other variables.
+
+To make things clearer, let us step through a concrete example and highlight
+the construction of the symbolic execution tree
+(\labelindexref{Figure}{fig:simple-tree}) for a simple C function
+(\labelindexref{Listing}{lst:simple-c}):
+\begin{itemize}
+  \newcommand{\pa}{\hltexttt{a}}
+  \newcommand{\pb}{\hltexttt{b}}
+  \newcommand{\pc}{\hltexttt{c}}
+  \newcommand{\vmax}{\hltexttt{max}}
+
+  \item We assume that the \hltexttt{max3} function can be called with any
+    integer numbers as arguments.  Thus, its formal parameters \pa{}, \pb{} and
+    \pc{} are the input of this symbolic execution; they are assigned (pure)
+    \emph{symbolic values} denoted by Greek letters $\alpha$, $\beta$ and
+    $\gamma$, and together make up the initial state (i.e. the root node in the
+    symbolic execution tree).  Implementation-wise, symbolic values can be
+    represented as a full range of their corresponding types on the machine
+    model that is targeted (e.g. $[-2.147.483.648; +2.147.483.647]$ for a
+    4-bytes integer).
+
+  \item On line 3, a new variable, \vmax{} is defined.  This is were
+    language-specific behaviour comes into play, as we use the fact that the
+    value of an uninitialized variable allocated on the stack is
+    unspecified\footnote{From the ISO/IEC 9899:2011 standard, informally
+    \textbf{C11}, paragraph \textbf{3.19.3 unspecified value} says: \emph{valid
+    value of the relevant type where this International Standard imposes no
+    requirements on which value is chosen in any instance}.} and we accordingly
+    assign it a symbolic value.
+
+    Note that in \labelindexref{Figure}{fig:simple-tree} variable \vmax{} is
+    added to the root node due to lack of space; ideally, there should be a
+    transition between the initial state (described above) and the state where
+    it gets introduced.
+
+\begin{minipage}{.45\textwidth}
+\begin{listing}[H]
+  \sourcecode{c}{src/code/simple-c.c}
+  \caption{Simple C function used to visualize symbolic execution.}
+  \label{lst:simple-c}
+\end{listing}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\centering
+\includegraphics[scale=0.5]{src/img/symb-tree}
+\captionof{figure}{Symbolic execution tree for the C function in
+  \labelindexref{Listing}{lst:simple-c}.}
+\label{fig:simple-tree}
+\end{minipage}
+
+  \item On line 5, the first \hltexttt{if/then/else} statement is reached,
+    causing the current state to \emph{fork}, creating two child nodes that
+    correspond to both scenarios: following the \hltexttt{then} part, which
+    means that the condition is true, and following the \hltexttt{else} part,
+    corresponding to its negation being true.  Notice that constraints are
+    added to both variables \pa{} and \pb{} in each of the new states, using
+    antisymmetry.
+
+  \item Similar to the previous step, on lines 7 and 12 the inner
+    \hltexttt{if/then/else} statements are symbolically executed yielding four
+    more states, as well as two more constraints in each one of them.
+
+    The interesting bit here is that variable \vmax{} loses its previously
+    assigned symbolic value, $\gamma$, together with its \textbf{constraints}
+    (which happens to be an empty list in this example) once it is assigned one
+    of \pa{}, \pb{} or \pc{}.  It also inherits all constraints of \pa{}, which
+    is not explicitly highlighted in \labelindexref{Figure}{fig:simple-tree}.
+\end{itemize}
+
 \todo{briefly what it is, an example on C code, path explosion - another
 listing with many ifs}
 \todo{mention KLEE, etc}
@@ -215,6 +295,7 @@ constructed with a network description DSL - SEFL}
 \todo{mention model - actual system equivalence issue (i.e. its usually
 enforced by construction in formal verification, but we relax some constraints
 (global vars, etc)}
+\todo{ingress vs egress, example with if/else/if/else and switch!!}
 
 \todo{SymNet - key novelty is SEFL, being able to model stateful networks}
 \todo{SEFL - most important features, If, Constrain, :==:, :>=:, Fail, Forward}
@@ -243,5 +324,17 @@ iptables6 for IPv6 traffic, etc}
 \subsection{Organization}
 \todo{tables/chains, their purpose, etc}
 
-\subsection{Extensions}
-\todo{Mention match extensions and target extensions}
+\todo{Mention its extensions-based design and briefly discuss the two types of
+extensions and give some examples.}
+\paragraph{Match extensions.}
+\paragraph{Target extensions.}
+
+\subsection{Relation to Connection Tracking}
+\todo{Specify that connection tracking, even if part of the netfilter project
+in the kernel source code organization, is orthogonal to iptables/netfilter.
+However, netfilter can look at connection tracking info to take decisions. give
+example; say that another example (snat/dnat) is given below.}
+
+\subsection{The NAT table}
+\todo{Explain how NAT works, the fact that the table is analysed only when the
+connection is NEW; DNAT/SNAT virtual states, --ctstate examples}
