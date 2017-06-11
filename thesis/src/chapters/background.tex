@@ -568,15 +568,90 @@ logic)\abbrev{CTL}{Computation tree logic}.
 
 
 \section{iptables}
-\todo{what it is, netfilter, initial project was called netfilter/iptables;
-iptables6 for IPv6 traffic, etc}
+
+Before delving into how we build a model of an iptables-enabled device using
+SEFL and have it verified with SymNet, we first give an overview of what
+iptables is and how it works.
+
+We start with \textbf{netfilter} which is a framework provided by the Linux
+kernel that allows various networking-related operations (such as packet
+filtering, network address translation and other packet mangling) to be
+implemented in the form of customized handlers.  Historically, the project
+\emph{netfilter/iptables} was started by Rusty Russel in 1998 with the intent
+to re-design and improve software packages that were part of previous versions
+of the Linux kernel, such as ipchains and ipfwadm.
+
+\textbf{iptables} is the user-space command line tool used to configure the
+\emph{tables} defined by netfilter, for IPv4 traffic (hence the name). Given
+that it is the main application used by system administrators to define rules
+for packet filtering/mangling, and having been an essential part of the initial
+project that eventually evolved into today's framework, it is common to refer
+through \emph{iptables} to the entire software stack that enables this and use
+\emph{iptables} and \emph{netfilter} interchangeably.  In fact, by
+\emph{modelling iptables} we actually mean modelling the netfilter logic that
+it triggers.
 
 
 \subsection{Organization}
-\todo{tables/chains, their purpose, etc}
 
+netfilter attains a modular internal organization by splitting rules into a
+hierarchy of predefined \textbf{tables} and \textbf{chains}
+(\labelindexref{Figure}{fig:iptables-hierarchy}).  The latter can be further
+extended by users, as we will shortly see.
+
+\begin{figure}[h]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.6]{src/img/iptables-hierarchy}
+  \caption[A visualization of the tables/chains hierarchy in netfilter.]{A
+  visualization of the tables/chains hierarchy in netfilter. Note that there is
+  at least one more table, \emph{security}, that is not included here. Also,
+  while it is possible to have rules from different tables \emph{jump} to the
+  same user-defined chain, it is not very common.}
+  \label{fig:iptables-hierarchy}
+\end{figure}
+
+\paragraph{Tables.}
+Informally, \textbf{tables} are used to classify the rules
+based on their purpose.  Thus, each table is introduced to serve a specific
+purpose.  The most commonly used ones are:
+\begin{itemize}
+  \item \textbf{filter} - used for packet filtering only
+  \item \textbf{nat} - used for one-to-many NAT, port forwarding, masquerading,
+    packet redirecting; it is discussed in more detail in
+    \labelindexref{Section}{sub-sec:nat-table}.
+  \item \textbf{mangle} - used for specialized packet alteration; one commonly
+    used feature is \emph{packet marking}, which allows customized traffic
+    handling by the rules following it in the processing stack.
+\end{itemize}
+
+The lowercase spelling of table names is part of the convention adopted by
+iptables/netfilter.  In terms of the netfilter implementation, each table
+corresponds to a new hook.  netfilter uses a hook system to allow seamless
+extension and hot-plugging.  Therefore, tables are traversed in a
+pre-established, built-in \textbf{order}: raw, mangle, nat, filter.
+
+\paragraph{Chains.}
+As far as \textbf{chains} are concerned, they specify the point in the
+processing stack where the \emph{chain of rules} they represent will be
+applied (\labelindexref{Figure}{fig:iptables-organization}).
+
+\begin{figure}[h]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.5]{src/img/iptables-organization}
+  \caption{A flowgraph showing the usual processing stack in
+  netfilter/iptables.}
+  \label{fig:iptables-organization}
+\end{figure}
+
+\todo{built-in/user-defined}
+
+\paragraph{Rules.}
 \todo{Mention its extensions-based design and briefly discuss the two types of
 extensions and give some examples.}
+
+\todo{don't make these paragraphs; itemize or smth}
 \paragraph{Match extensions.}
 \paragraph{Target extensions.}
 
@@ -588,6 +663,6 @@ However, netfilter can look at connection tracking info to take decisions. give
 example; say that another example (snat/dnat) is given below.}
 
 
-\subsection{The NAT table}
+\subsection{The \emph{nat} table}\label{sub-sec:nat-table}
 \todo{Explain how NAT works, the fact that the table is analysed only when the
 connection is NEW; DNAT/SNAT virtual states, --ctstate examples}
