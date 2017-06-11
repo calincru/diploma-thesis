@@ -11,6 +11,7 @@ SymNet can be used to verify the models we build.  Finally, we go into details
 about iptables; we discuss its internal organization, as well as its most
 common features.
 
+
 \section{Network verification}\label{sec:network-verification}
 \todo{what is \emph{formal verification}}
 
@@ -84,7 +85,7 @@ proof procedure.
 The most well-established proof procedure is \textbf{model checking}
 \cite{clarke1999model, mcmillan2003model} which does an exhaustive exploration
 of the states a system can be in to verify that a given property holds. Another
-technique which has been thoroughly explored is \emph{reduction to SAT}
+technique which has been thoroughly explored is \textbf{reduction to SAT}
 (AntEater \cite{mai2011debugging}).  However, for large models that result even
 from moderately sized networks the aforementioned approaches render the
 verification problem intractable.  Other modelling/verification techniques
@@ -95,7 +96,7 @@ which have been considered over time are:
     code}, and then running symbolic execution (discussed in
     \labelindexref{Section}{sub-sec:symb-exec}) on it.  This approach has two
     major downsides:
-      \begin{enumerate}[label=(\roman*)]
+      \begin{enumerate}[(i)]
         \item Currently, symbolic execution rapidly reaches its worst-case
           exponential complexity when run on large C programs, and
         \item Having to consider all possible interleavings of different
@@ -106,7 +107,7 @@ which have been considered over time are:
     \textbf{data plane} of each network element and simulate their interactions
     (\labelindexref{Figure}{fig:control-data-verif}).  However, modelling the
     control plane is hard to achieve in practice, because:
-    \begin{enumerate}[label=(\roman*)]
+    \begin{enumerate}[(i)]
       \item Many processes that are part of it are asynchronous, which means
         that they inherit all the downsides of modelling distributed systems;
         examples include dynamic routing protocols updates and SDN
@@ -154,7 +155,8 @@ greatly overweight its advantages:
     than static analysis.
 \end{itemize}
 
-\subsection{Static data plane verification}
+
+\subsection{Static data plane verification}\label{sub-sec:static-dp-verif}
 
 Starting from the observation that including control planes in our models with
 the end goal of verifying multiple properties of large (i.e.  enterprise-sized)
@@ -181,7 +183,7 @@ devices.
 
 Our limiting of the models to network data planes can be interpreted in two
 opposite ways:
-\begin{enumerate}[label=(\roman*)]
+\begin{enumerate}[(i)]
   \item As a downside, for ignoring the other half that makes up a network
     device: its rule-making processes, the control plane.
   \item As an approach that enables scalable verification, based on the insight
@@ -199,6 +201,7 @@ has already been studied in the neighbouring field of software verification
 \cite{marinescu2013katch}.  If our initial verification reports failure, human
 intervention is required in order to detect the problem in the control plane
 that caused the unexpected rule in the data plane.
+
 
 \subsection{Symbolic execution}\label{sub-sec:symb-exec}
 
@@ -223,16 +226,16 @@ the construction of the symbolic execution tree
   \newcommand{\vmax}{\hltexttt{max}}
 
   \item We assume that the \hltexttt{max3} function can be called with any
-    integer numbers as arguments.  Thus, its formal parameters \pa{}, \pb{} and
-    \pc{} are the input of this symbolic execution; they are assigned (pure)
+    integer arguments.  Thus, its formal parameters \pa{}, \pb{} and \pc{} are
+    the input of this symbolic execution; they are assigned (pure)
     \emph{symbolic values} denoted by Greek letters $\alpha$, $\beta$ and
     $\gamma$, and together make up the initial state (i.e. the root node in the
     symbolic execution tree).  Implementation-wise, symbolic values can be
     represented as a full range of their corresponding types on the machine
     model that is targeted (e.g. $[-2.147.483.648; +2.147.483.647]$ for a
-    4-bytes integer).
+    4-bytes signed integer).
 
-  \item On line 3, a new variable, \vmax{} is defined.  This is were
+  \item At \textbf{line 3}, a new variable, \vmax{} is defined.  This is were
     language-specific behaviour comes into play, as we use the fact that the
     value of an uninitialized variable allocated on the stack is
     unspecified\footnote{From the ISO/IEC 9899:2011 standard, informally
@@ -261,52 +264,208 @@ the construction of the symbolic execution tree
 \label{fig:simple-tree}
 \end{minipage}
 
-  \item On line 5, the first \hltexttt{if/then/else} statement is reached,
-    causing the current state to \emph{fork}, creating two child nodes that
-    correspond to both scenarios: following the \hltexttt{then} part, which
-    means that the condition is true, and following the \hltexttt{else} part,
-    corresponding to its negation being true.  Notice that constraints are
-    added to both variables \pa{} and \pb{} in each of the new states, using
-    antisymmetry.
+  \item At \textbf{line 5}, the first \hltexttt{if/then/else} statement is
+    reached causing the current state to \emph{fork}; this creates two child
+    nodes that correspond to the two possible scenarios: following the
+    \hltexttt{then} part, which means that the condition is true, and following
+    the \hltexttt{else} part, corresponding to its negation being true.  Notice
+    that constraints are added to both variables \pa{} and \pb{} in each of the
+    new states, using antisymmetry.
 
-  \item Similar to the previous step, on lines 7 and 12 the inner
+  \item Similar to the previous step, at \textbf{lines 7 and 12} the inner
     \hltexttt{if/then/else} statements are symbolically executed yielding four
     more states, as well as two more constraints in each one of them.
 
     The interesting bit here is that variable \vmax{} loses its previously
-    assigned symbolic value, $\gamma$, together with its \textbf{constraints}
+    assigned symbolic value, $\delta$, together with its \textbf{constraints}
     (which happens to be an empty list in this example) once it is assigned one
-    of \pa{}, \pb{} or \pc{}.  It also inherits all constraints of \pa{}, which
-    is not explicitly highlighted in \labelindexref{Figure}{fig:simple-tree}.
+    of \pa{}, \pb{} or \pc{}.  It also inherits all their constraints, which is
+    not explicitly highlighted in \labelindexref{Figure}{fig:simple-tree}.
 \end{itemize}
 
-\todo{briefly what it is, an example on C code, path explosion - another
-listing with many ifs}
-\todo{mention KLEE, etc}
+We can derive a couple of properties of symbolic execution even from such a
+small example:
+\begin{enumerate}[a)]
+  \item On the \textbf{upside}, it enables \emph{invariant checking} by
+    ensuring that certain properties hold in all explored states, and, thus,
+    are true irrespective of program's input.  Furthermore, it can help
+    increase code coverage\footnote{Code coverage is a measure used to
+    described the degree to which the source code of a program is executed when
+    a particular test suite runs.} by generating unit tests that explore
+    previously untouched parts of the program.
+
+  \item On the \textbf{downside}, it commonly leads to \textbf{path explosion},
+    which is arguably its single most limiting factor. Path explosion refers to
+    the exponential increase in the number of states (and, implicitly, paths)
+    in the symbolic execution tree as the number of traversed \emph{conditional
+    branches} in the program accumulate. Even though heuristic methods to
+    reduce time and/or space have been devised (e.g. parallelizing independent
+    paths \cite{staats2010parallel}, merging similar paths
+    \cite{kuznetsov2012efficient}, etc), it still remains a concern.
+
+    That being said, it is worth noting that it is not the \emph{length} of the
+    analyzed program that causes path explosion, but certain types of
+    instructions (i.e.  conditional branches).  This is an important remark
+    which becomes meaningful when used to guide the design of a DSL (Domain
+    Specific Language)\abbrev{DSL}{Domain Specific Language}; see
+    (\labelindexref{Section}{sec:symnet-sefl}).
+\end{enumerate}
+
 
 \section{SymNet and SEFL}\label{sec:symnet-sefl}
 
-\todo{briefly present section}
+SymNet and SEFL establish together the framework we use to model and verify
+large, complex, stateful networks. SymNet is a network analysis tool that
+accepts as input a (SEFL) model of the network and uses symbolic execution to
+find all possible flows that might traverse it.  SEFL is a network processing
+DSL which describes network functions as flow transformations.  Even though
+they serve conceptually different purposes, they have been designed and
+optimized to be used together.  Therefore, it is common to refer to the system
+as a whole as \textbf{SymNet}.
 
-\subsection{Overview}
+The \textbf{key novelty} of this network verification system is making the
+verification procedure (that is, symbolic execution) a core part of the design
+behind the network description language it uses (and even name it).  Thus,
+careful crafting of SEFL models can keep \emph{path explosion}
+(\labelindexref{Section}{sub-sec:symb-exec}) under control and achieve
+performances unreached before: it has been used to verify backbone routers with
+hundreds of thousands of prefixes in seconds \cite{stoenescu2016symnet}, and
+has been shown to scale linearly with the size of the analyzed network
+\cite{stoenescu2013symnet}.
 
-\todo{SymNet - uses static network verification on a model of the network
-constructed with a network description DSL - SEFL}
-\todo{mention model - actual system equivalence issue (i.e. its usually
-enforced by construction in formal verification, but we relax some constraints
-(global vars, etc)}
-\todo{ingress vs egress, example with if/else/if/else and switch!!}
+\paragraph{Modelling packets.}
+Packets are to SymNet how variables are to regular symbolic execution tools
+(e.g. KLEE \cite{cadar2008klee}). The main difference is that instead of a
+4-bytes signed integer, for instance, a packet is a collection of
+\emph{headers}, and each header is a collection of \emph{header fields},
+similar to real implementations (\labelindexref{Figure}{fig:symbolic-packet}).
+The common symbolic execution terminology is also inherited: \emph{symbolic}
+packet, \emph{symbolic} header field, \emph{constrained} header field,
+\emph{concrete} packet, etc.
 
-\todo{SymNet - key novelty is SEFL, being able to model stateful networks}
-\todo{SEFL - most important features, If, Constrain, :==:, :>=:, Fail, Forward}
-\todo{SEFL - how we can express state}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.6]{src/img/symbolic-packet}
+  \caption{Visualization of a symbolic integer value and a symbolic packet.}
+  \label{fig:symbolic-packet}
+\end{figure}
+
+To continue the analogy, SEFL instructions are similar to usual instructions in
+a C program.  However, in SEFL, instructions implicitly operate on the header
+fields of a single packet; that is, the memory space is a packet (or, more
+precisely, a \emph{packet flow}, as we will shortly see).  Therefore, another
+defining design aspect of SymNet is that a packet is tied to a symbolic
+execution path.
+
+Another novel capability of SymNet is modelling stateful network devices.  The
+way this is achieved is by adding per-flow state as additional dimensions in
+the packet header.  It includes all state that would normally be stored in each
+stateful device it traverses.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.6]{src/img/snat-example}
+  \caption{Packet flow during connection initiation and reply while behind a
+  NAT appliance.}
+  \label{fig:snat-example}
+\end{figure}
+
+An example of how this works is presented in
+\labelindexref{Figure}{fig:snat-example}.  The user on the right initiates a
+connection with the server on the left \textbf{(1)}.  He is behind a NAT
+appliance which is configured to do SNAT (Source NAT) on outgoing connections.
+Since the 5-tuples identifying address translations are stored by the NAT box,
+we model its logic in SEFL by adding this information as part of the flow. Due
+to lack of space, in this example we only include the source and the
+destination IP addresses; the star in front of these new fields helps
+differentiate regular packet headers and state-related fields \textbf{(2)}.
+The reply packet is part of the same flow, so we make sure it keeps these
+fields unchanged \textbf{(3)}.  When the reply arrives at the NAT box, it uses
+the state fields to apply the reverse translation; finally, it forwards the
+packet to its original source \textbf{(4)}.
+
+\bigskip
+
+Finally, it is worth reiterating that SymNet fits into the static data plane
+verification category since the models built using SEFL are solely based on the
+data plane of each network element.  As already argued in
+\labelindexref{Section}{sub-sec:static-dp-verif}, this technique proves to be a
+good trade-off between model accuracy and verification complexity.  In many
+formal verification systems the equivalence between the model and the target
+system is enforced by construction.  However, in order to reach a tractable
+problem, besides ignoring the control plane in the modelling process, SymNet
+makes a few additional assumptions:
+\begin{itemize}
+  \item \textbf{Independence between different flows.} A consequence of
+    storing the state of middleboxes as part of the flow and having SEFL focus
+    on one flow only means that per-device global state is ignored.  This
+    includes internal buffer sizes, seeds used for randomization, and various
+    other statistics. There is also no notion of flow ordering, which might
+    make a difference in practice.
+  \item \textbf{The network is operationally correct.} Scenarios such as memory
+    corruption and devices failing are not considered.
+\end{itemize}
+
 
 \subsection{Building network models with SEFL}
 
-\todo{directed graphs, nodes (commonly referred to as ports, because they also
-include the actual ports of each device we model) have associated SEFL code that gets executed when
-a packet reaches that node; edges - links between nodes (i.e. wires between
-ports, but not only), src -> dst, many to one relation, so not really "wires".}
+A \textbf{network model} described using SEFL and processed by SymNet is a
+directed graph, \hlmath{$G = (V, E)$}, with nodes \hlmath{$u\in V$} often
+called \textbf{ports}, and edges \hlmath{$(u, v)\in E$} referred to as
+\textbf{links}.  Additionally, the following property holds: \hlmath{$\forall
+u\in V$, $deg^{+}(u) <= 1$}. In other words, each node should have no more than
+one outgoing edge (or, one-to-many relationships are not allowed). Otherwise, a
+form of \textbf{implicit} non-determinism would result (i.e.
+\emph{unconditional fork}) which does not make sense in this context.
+\textbf{Explicit} forks are supported, as highlighted below.
+
+Note that many-to-one relationships are possible. Therefore, while it is
+natural to think of a link as a physical wire connecting two ports, they are
+not limited to that, as it is shown in the example below.
+
+Before delving into an example, an overview of the most commonly used SEFL
+instructions is presented in \labelindexref{Table}{tab:sefl-instr}.
+
+\begin{table}
+  \centering
+  \begin{tabular}{ | l | p{10cm} |}
+    \hline
+    % Header.
+    \textbf{Instruction} & \textbf{Description} \\ \hline
+
+    % Constrain.
+    Constrain(var, condition) & Adds \emph{condition} to the list of
+    constraints for variable \emph{var}.  If it is unsatisfiable, the current
+    execution path fails. Note that \emph{condition} is a predicate (i.e.
+    boolean-valued function), or a conjunction/disjunction of predicates,
+    generally expressed as a partially applied two-parameters boolean function
+    in Polish notation.
+
+    Example: Constrain("a", $== 10$), Constrain("b", $\land(> 10, < 12)$)
+    \\ \hline
+
+    % If.
+    If (condition, then, else) & Forks the execution path, yielding two new
+    packet flows: one continues on the \emph{then} branch iff.\
+    \emph{condition} is satisfiable, and the other continues on the \emph{else}
+    branch iff. its negation is satisfiable.  Note that conditions are
+    expressed in terms of \emph{Constrain}.
+    \\ \hline
+
+    % TODO.
+  \end{tabular}
+  \caption{Common SEFL instructions.}
+  \label{tab:sefl-instr}
+\end{table}
+
+
+\paragraph{Modelling a router.}
+So far we have seen \textbf{what} SEFl is capable of doing: model network
+functions as packet flow transformations.  In the remaining of this section we
+will present \textbf{how} this is accomplished using a concrete example: a
+router.
+
+\todo{ingress vs egress, example with if/else/if/else and switch!!}
 
 \subsection{Interpreting the results}
 
