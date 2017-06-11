@@ -71,7 +71,7 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage[shortlabels]{enumitem}
+\usepackage[shortlabels, inline]{enumitem}
 \usepackage{minted}
 \usepackage{parcolumns}
 \usepackage{wrapfig}

@@ -58,8 +58,9 @@ connectivity.
 \end{definition}
 
 \begin{definition}[Partial network correctness - Encrypted traffic]
-If the network behaves correctly, then the TCP traffic between Alice and Bob
-should be encrypted.
+If the network behaves correctly, then TCP (Transmission Control
+Protocol)\abbrev{TCP}{Transmission Control Protocol} traffic between Alice
+and Bob should be encrypted.
 \end{definition}
 
 Notice the \hlmath{$correctness \implies property$} form, instead of
@@ -407,7 +408,7 @@ makes a few additional assumptions:
 \end{itemize}
 
 
-\subsection{Building network models with SEFL}
+\subsection{Building network models with SEFL}\label{sub-sec:building-models}
 
 A \textbf{network model} described using SEFL and processed by SymNet is a
 directed graph, \hlmath{$G = (V, E)$}, with nodes \hlmath{$u\in V$}, often
@@ -491,8 +492,12 @@ based on its routing table (\labelindexref{Figure}{fig:router-model}).
 \begin{figure}[h]
   \centering
   \includegraphics[scale=0.6]{src/img/router-model}
-  \caption{Modelling a simple router that only forwards packets based on its
-  routing table.}
+  \sethlcolor{mathgray}
+  \caption[Modelling a simple forwarding router.]{Modelling a simple router
+  that only forwards packets based on its routing table. The model is given by
+  \hl{$G=(V, E)$}, with \hl{$V=\{in_1, in_2, in_3, rd_1, out_1, out_2,
+  out_3\}$}, \hl{$E=\{(in_1, rd_1), (in_2, rd_1), (in_3, rd_1)\}$}, and the
+  \textbf{port} \hl{$rd_1$} having assigned the routing decision logic.}
   \label{fig:router-model}
 \end{figure}
 
@@ -518,17 +523,48 @@ ports, we can do so in isolation, as long as the \emph{contract} (input port,
 output ports it forwards too, etc) is respected.
 
 Finally, the \hltexttt{if/then/else} approach mentioned above is the most
-straightforward, but also the most inefficient one. That being said, we will
-not cover the more advanced and better performing ones here.
+straightforward one, but also the most inefficient way of implementing routing
+table lookup. That being said, we will not cover the more advanced and better
+performing ones here.
 
-\subsection{Interpreting the results}
+\subsection{Running SymNet and interpreting the results}
 
-\todo{what it means to "run" SymNet - insert symbolic packet; what is symbolic
-packet? etc}
-\todo{what is the output - exhaustive list of possible paths together with the
-constraints on each header/metadata field; hard to interpret; simplify: think
-about particular rules to test and only use symbolic fields for the fields
-which are of interest.}
+\textbf{Running} SymNet is as simple as providing
+\begin{enumerate*}[a)]
+  \item the graph $G$ defined in the previous section
+    (\labelindexref{Section}{sub-sec:building-models}) that models the analyzed
+    network, and
+  \item an initial packet and a port to bootstrap symbolic execution with.
+\end{enumerate*}
+
+Owing to the one-to-many restriction, the graph $G$ is usually given as a
+\textbf{Map} data structure (as opposed to a \textbf{Multimap}), with
+\emph{from} ports as keys (therefore, each one will appear at most once) and
+\emph{to} ports as values.  The set $V$ of nodes is simply the union of the set
+of keys and the set of values.  The logic expressed using SEFL is given as a
+separate data structure, mapping ports to their assigned SEFL instructions.
+
+What should the initial packet be?  The \emph{policy rule}
+(\labelindexref{Section}{sec:network-verification}) that is being verified
+should drive this choice.  For instance, if we want to ensure that an intranet
+is not reachable from the outside, we use purely symbolic packets.  On the
+other hand, for more specific rules, such as verifying TCP reachability between
+two nodes, we use concrete values for source and destination IP addresses and
+leave all the rest unconstrained.
+
+As previously mentioned, SymNet outputs an exhaustive list of flows together
+with their constraints.  If the list is not a very large one, manually looking
+through the resulting execution paths to ensure that the policy is respected is
+a viable option.  This is often the case when a very constrained bootstrapping
+packet is used.  However, more often than not this list is too large to be
+inspected by hand.  For these cases, we have devised Scala matchers to use in
+our automated testing suites.  In addition to that, as already discussed in
+\labelindexref{Section}{sec:network-verification} there are ongoing efforts to
+integrate policy validation as part of the symbolic execution engine, by means
+of various computation logics, such as CTL (Computation tree
+logic)\abbrev{CTL}{Computation tree logic}.
+
+\todo{Add citation here.}
 
 
 \section{iptables}
