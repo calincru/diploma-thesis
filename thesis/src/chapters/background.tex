@@ -410,21 +410,16 @@ makes a few additional assumptions:
 \subsection{Building network models with SEFL}
 
 A \textbf{network model} described using SEFL and processed by SymNet is a
-directed graph, \hlmath{$G = (V, E)$}, with nodes \hlmath{$u\in V$} often
-called \textbf{ports}, and edges \hlmath{$(u, v)\in E$} referred to as
-\textbf{links}.  Additionally, the following property holds: \hlmath{$\forall
-u\in V$, $deg^{+}(u) <= 1$}. In other words, each node should have no more than
-one outgoing edge (or, one-to-many relationships are not allowed). Otherwise, a
-form of \textbf{implicit} non-determinism would result (i.e.
-\emph{unconditional fork}) which does not make sense in this context.
-\textbf{Explicit} forks are supported, as highlighted below.
-
-Note that many-to-one relationships are possible. Therefore, while it is
-natural to think of a link as a physical wire connecting two ports, they are
-not limited to that, as it is shown in the example below.
-
-Before delving into an example, an overview of the most commonly used SEFL
-instructions is presented in \labelindexref{Table}{tab:sefl-instr}.
+directed graph, \hlmath{$G = (V, E)$}, with nodes \hlmath{$u\in V$}, often
+called \textbf{ports}, that have SEFL instructions associated with them, and
+edges \hlmath{$(u, v)\in E$} referred to as \textbf{links}.  Additionally, the
+following property holds: \hlmath{$\forall u\in V$, $deg^{+}(u) <= 1$}. In
+other words, each node should have no more than one outgoing edge (or,
+one-to-many relationships are not allowed). Otherwise, a form of
+\textbf{implicit} non-determinism would result (i.e.  \emph{unconditional
+fork}) which does not make sense in this context.  \textbf{Explicit} forks are
+supported, as highlighted in \labelindexref{Table}{tab:sefl-instr} which is an
+overview of the most common SEFL instructions.
 
 \begin{table}
   \centering
@@ -452,20 +447,79 @@ instructions is presented in \labelindexref{Table}{tab:sefl-instr}.
     expressed in terms of \emph{Constrain}.
     \\ \hline
 
-    % TODO.
+    % Fail.
+    Fail(message) & Explicitly stop symbolic execution for the current flow.
+    Note that this is one of the instructions that are part of the language
+    just to ease the interaction with the symbolic execution engine.
+    \\ \hline
+
+    % Forward.
+    Forward(port) & Forwards this packet to \emph{port}.  Execution will
+    continue starting with the instructions associated with it.
+    \\ \hline
+
+    % Fork.
+    Fork(i1, i2, ...) & Explicitly forks the current execution path into a number of new
+    flows and for each new flow $j$, continues execution with instruction
+    $i_{j}$.
+    \\ \hline
+
+    % InstructionBlock.
+    InstructionBlock(i1, i2, ...) & Acts as the \emph{composite} type in a
+    composite design pattern; simply aggregates the given instructions and
+    executes them in the specified order.
+    \\ \hline
+
+    % NoOp
+    NoOp & This instruction is simply skipped by the symbolic execution engine.
+    \\ \hline
   \end{tabular}
   \caption{Common SEFL instructions.}
   \label{tab:sefl-instr}
 \end{table}
 
+Note that many-to-one relationships are still possible. Therefore, while it is
+natural to think of a link as a physical wire connecting two ports, they are
+not limited to that, as it is shown in the example below.
 
-\paragraph{Modelling a router.}
-So far we have seen \textbf{what} SEFl is capable of doing: model network
-functions as packet flow transformations.  In the remaining of this section we
-will present \textbf{how} this is accomplished using a concrete example: a
-router.
+So far we have seen \textbf{what} SEFL is capable of doing: model network
+functions as packet flow transformations.  To illustrate
+\textbf{how} this is accomplished by putting together all the pieces discussed
+above, let us introduce the model of a simple router that only forwards packets
+based on its routing table (\labelindexref{Figure}{fig:router-model}).
 
-\todo{ingress vs egress, example with if/else/if/else and switch!!}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.6]{src/img/router-model}
+  \caption{Modelling a simple router that only forwards packets based on its
+  routing table.}
+  \label{fig:router-model}
+\end{figure}
+
+Firstly, we notice that the edges are directed and, thus, our model has
+separate input and output ports.  Secondly, its only job is to route any
+incoming packet irrespective of the input port it arrives on, so we connect all
+input ports to an internal, hidden port of a \emph{virtual device} called
+\textbf{routing decision}.  It is worth mentioning that the same behaviour
+could have been achieved by assigning the instruction
+\emph{Forward(hidden-port)} to all input ports instead of adding new edges to
+our model.
+
+The routing decision has an input port and forwards (dotted lines) the packet
+to exactly one output port or to the local process.  One important thing to
+notice is that the logic to iterate through an ordered list of IP prefixes can
+be naively modelled as a sequence of \hltexttt{if/then/else} SEFL statements,
+which means that its input port would suffice to express all this
+functionality.  However, we model it as a standalone entity (through the red
+square) to represent the idea of model encapsulation and components decoupling
+by committing to well-defined \textbf{interfaces}.  For instance, if we decide
+to use another model for routing decisions, which needs some intermmediate
+ports, we can do so in isolation, as long as the \emph{contract} (input port,
+output ports it forwards too, etc) is respected.
+
+Finally, the \hltexttt{if/then/else} approach mentioned above is the most
+straightforward, but also the most inefficient one. That being said, we will
+not cover the more advanced and better performing ones here.
 
 \subsection{Interpreting the results}
 
@@ -476,9 +530,11 @@ constraints on each header/metadata field; hard to interpret; simplify: think
 about particular rules to test and only use symbolic fields for the fields
 which are of interest.}
 
+
 \section{iptables}
 \todo{what it is, netfilter, initial project was called netfilter/iptables;
 iptables6 for IPv6 traffic, etc}
+
 
 \subsection{Organization}
 \todo{tables/chains, their purpose, etc}
@@ -488,11 +544,13 @@ extensions and give some examples.}
 \paragraph{Match extensions.}
 \paragraph{Target extensions.}
 
+
 \subsection{Relation to Connection Tracking}
 \todo{Specify that connection tracking, even if part of the netfilter project
 in the kernel source code organization, is orthogonal to iptables/netfilter.
 However, netfilter can look at connection tracking info to take decisions. give
 example; say that another example (snat/dnat) is given below.}
+
 
 \subsection{The NAT table}
 \todo{Explain how NAT works, the fact that the table is analysed only when the
