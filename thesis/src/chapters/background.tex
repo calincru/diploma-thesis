@@ -1,8 +1,8 @@
 \chapter{Background}
 
 This chapter introduces the concepts which form the building blocks for our
-iptables model, making use of the extensive work conducted by Stoenescu et. al
-\cite{stoenescu2013symnet, stoenescu2016symnet}.
+iptables model, making use of the extensive work conducted by Stoenescu et al.
+\cite{stoenescu2013symnet, stoenescu2016symnet}
 
 We first give a short overview of the broad field of network verification, with
 an emphasis on the approach that we use: static verification powered by
@@ -13,11 +13,14 @@ common features.
 
 
 \section{Network verification}\label{sec:network-verification}
-\todo{what is \emph{formal verification}}
+Formal verification is the act of proving or disproving the correctness of
+intended algorithms underlying a system with respect to a certain formal
+specification or property, using formal methods of mathematics. Network
+verification is merely formal verification tailored for network-related
+questions.
 
 \paragraph{Correctness.}\label{par:correctness}
-Network verification is merely formal verification tailored for network-related
-questions.  But in order to do so, we need to provide a rigorous definition for
+But in order to apply it, we first need to provide a rigorous definition for
 network correctness.  It turns out that this is by itself a very involved task.
 Being abstract is what one might try in order to get around this formalism:
 
@@ -50,11 +53,11 @@ A complementary approach, rather than an alternative, which proves more
 practical by circumventing the need for a correctness definition that covers
 all desired properties is to specialize the verification to specific goals.
 So, instead of a \emph{proper} correctness definition, we could define multiple
-\emph{partial} ones:
+\emph{partial} ones, such as:
 
-\begin{definition}[Partial network correctness - Connectivity]
-If the network behaves correctly, then nodes A and B should have bi-directional
-connectivity.
+\begin{definition}[Partial network correctness - Reachability]
+If the network behaves correctly, then nodes A and B should be reachable from
+one another.
 \end{definition}
 
 \begin{definition}[Partial network correctness - Encrypted traffic]
@@ -66,7 +69,7 @@ and Bob should be encrypted.
 Notice the \hlmath{$correctness \implies property$} form, instead of
 \hlmath{$correctness \iff policy$}, in
 \labelindexref{Definition}{def:full-correctness}.  Still, using simple logic
-rules, if we admit that the policy is a conjunction of rules,
+rules, if we admit that the policy is a conjunction of rules (i.e. properties),
 \hlmath{$P = r_1 \wedge r_2 \wedge ... \wedge r_n$}, and we prove
 \hlmath{$r_i$, $\mbox{for } i = 1,...,n$}, then
 \hlmath{$correctness \implies P$}.  Since the reverse implication is implicit,
@@ -116,9 +119,9 @@ which have been considered over time are:
         controller updates.
       \item Building on the previous one, control planes are usually very
         complex, especially since more and more middleboxes become fundamental
-        in today's networks.  However, one way to simplify the process of
-        modelling it is to specialize the model for one particular process
-        \cite{weitz2016bagpipe, fogel2015general}.
+        in today's networks.  One way to simplify the process of modelling it
+        is to specialize the model for one particular process
+        \cite{weitz2016bagpipe, fogel2015general}, but this looses generality.
     \end{enumerate}
   \item Model only the data plane of the network in such a way that processing
     logic which does not affect packet flows is ignored
@@ -132,7 +135,8 @@ which have been considered over time are:
 \begin{figure}[h]
   \centering
   \includegraphics[scale=0.5]{src/img/control-data}
-  \caption{Control/data plane verification.}
+  \caption{Data plane verification vs. control plane \emph{and} data plane
+  verification.}
   \label{fig:control-data-verif}
 \end{figure}
 
@@ -182,8 +186,8 @@ specific instances of the more general Forwarding Information Base
 specialized hardware components responsible for forwarding in various network
 devices.
 
-Our limiting of the models to network data planes can be interpreted in two
-opposite ways:
+Limiting the models to network data planes can be interpreted in two
+contradictory ways:
 \begin{enumerate}[(i)]
   \item As a downside, for ignoring the other half that makes up a network
     device: its rule-making processes, the control plane.
@@ -200,8 +204,8 @@ is, then an incremental analysis can be applied from that point forward: this
 implies analyzing only the updates that reach the data plane, a technique which
 has already been studied in the neighbouring field of software verification
 \cite{marinescu2013katch}.  If our initial verification reports failure, human
-intervention is required in order to detect the problem in the control plane
-that caused the unexpected rule in the data plane.
+intervention is required in order to detect the control plane problem that
+caused the unexpected rule in the data plane.
 
 
 \subsection{Symbolic execution}\label{sub-sec:symb-exec}
@@ -308,8 +312,8 @@ small example:
     analyzed program that causes path explosion, but certain types of
     instructions (i.e.  conditional branches).  This is an important remark
     which becomes meaningful when used to guide the design of a DSL (Domain
-    Specific Language)\abbrev{DSL}{Domain Specific Language}; see
-    (\labelindexref{Section}{sec:symnet-sefl}).
+    Specific Language)\abbrev{DSL}{Domain Specific Language}, introduced in the
+    following section.
 \end{enumerate}
 
 
@@ -358,10 +362,10 @@ precisely, a \emph{packet flow}, as we will shortly see).  Therefore, another
 defining design aspect of SymNet is that a packet is tied to a symbolic
 execution path.
 
-Another novel capability of SymNet is modelling stateful network devices.  The
-way this is achieved is by adding per-flow state as additional dimensions in
-the packet header.  It includes all state that would normally be stored in each
-stateful device it traverses.
+Another novel capability of SymNet is modelling \textbf{stateful} network
+devices.  The way this is achieved is by adding per-flow state as additional
+dimensions in the packet header.  It includes all state that would normally be
+stored in each stateful device it traverses.
 
 \begin{figure}[h]
   \centering
@@ -387,7 +391,7 @@ packet to its original source \textbf{(4)}.
 
 \bigskip
 
-Finally, it is worth reiterating that SymNet fits into the static data plane
+It is worth reiterating that SymNet fits into the static data plane
 verification category since the models built using SEFL are solely based on the
 data plane of each network element.  As already argued in
 \labelindexref{Section}{sub-sec:static-dp-verif}, this technique proves to be a
@@ -415,7 +419,7 @@ directed graph, \hlmath{$G = (V, E)$}, with nodes \hlmath{$u\in V$}, often
 called \textbf{ports}, that have SEFL instructions associated with them, and
 edges \hlmath{$(u, v)\in E$} referred to as \textbf{links}.  Additionally, the
 following property holds: \hlmath{$\forall u\in V$, $deg^{+}(u) <= 1$}. In
-other words, each node should have no more than one outgoing edge (or,
+other words, each node should have no more than one outgoing edge (i.e.
 one-to-many relationships are not allowed). Otherwise, a form of
 \textbf{implicit} non-determinism would result (i.e.  \emph{unconditional
 fork}) which does not make sense in this context.  \textbf{Explicit} forks are
@@ -504,10 +508,10 @@ based on its routing table (\labelindexref{Figure}{fig:router-model}).
 Firstly, we notice that the edges are directed and, thus, our model has
 separate input and output ports.  Secondly, its only job is to route any
 incoming packet irrespective of the input port it arrives on, so we connect all
-input ports to an internal, hidden port of a \emph{virtual device} called
-\textbf{routing decision}.  It is worth mentioning that the same behaviour
-could have been achieved by assigning the instruction
-\emph{Forward(hidden-port)} to all input ports instead of adding new edges to
+input ports to an internal, hidden port, which is the input port of a
+\emph{virtual device} called \textbf{routing decision}.  It is worth mentioning
+that the same behaviour could have been achieved by assigning the instruction
+\emph{Forward($rd_1$)} to all input ports instead of adding new edges to
 our model.
 
 The routing decision has an input port and forwards (dotted lines) the packet
@@ -524,8 +528,8 @@ output ports it forwards too, etc) is respected.
 
 Finally, the \hltexttt{if/then/else} approach mentioned above is the most
 straightforward one, but also the most inefficient way of implementing routing
-table lookup. That being said, we will not cover the more advanced and better
-performing ones here.
+table lookup. That being said, the more advanced and better performing ones do
+not make the subject of this chapter.
 
 \subsection{Running SymNet and interpreting the results}
 
@@ -541,16 +545,18 @@ Owing to the one-to-many restriction, the graph $G$ is usually given as a
 \textbf{Map} data structure (as opposed to a \textbf{Multimap}), with
 \emph{from} ports as keys (therefore, each one will appear at most once) and
 \emph{to} ports as values.  The set $V$ of nodes is simply the union of the set
-of keys and the set of values.  The logic expressed using SEFL is given as a
-separate data structure, mapping ports to their assigned SEFL instructions.
+of keys and the set of values in this Map.  The logic expressed using SEFL is
+given as a separate data structure, mapping ports to their assigned SEFL
+instructions.
 
 What should the initial packet be?  The \emph{policy rule}
 (\labelindexref{Section}{sec:network-verification}) that is being verified
 should drive this choice.  For instance, if we want to ensure that an intranet
-is not reachable from the outside, we use purely symbolic packets.  On the
-other hand, for more specific rules, such as verifying TCP reachability between
-two nodes, we use concrete values for source and destination IP addresses and
-leave all the rest unconstrained.
+is not reachable from the outside, we use purely symbolic packets to ensure
+that all possible packets are verified.  On the other hand, for more specific
+rules, such as verifying TCP reachability between two nodes, we use concrete
+values for source and destination IP addresses and leave all the rest
+unconstrained.
 
 As previously mentioned, SymNet outputs an exhaustive list of flows together
 with their constraints.  If the list is not a very large one, manually looking
@@ -624,14 +630,14 @@ used ones are:
 
 The lowercase spelling of table names is part of the convention adopted by
 iptables/netfilter.  In terms of the netfilter implementation, each table
-corresponds to a new hook.  netfilter uses a hook system to allow seamless
-extension and hot-plugging.  Therefore, tables are traversed in a
+corresponds to a new hook in the hook system used by netfilter to allow
+seamless extension and hot-plugging.  Therefore, tables are traversed in a
 pre-established, built-in \textbf{order}: raw, mangle, nat, filter.
 
 \paragraph{Chains.}
-As far as the chains are concerned, they specify the point in the processing
-stack where the \emph{chain of rules} they represent will be applied
-(\labelindexref{Figure}{fig:iptables-organization}).  There are 5
+As far as the chains are concerned, they specify the point in the
+\textbf{processing stack} where the \emph{chain of rules} they represent will
+be applied (\labelindexref{Figure}{fig:iptables-organization}).  There are 5
 \textbf{built-in chains}:
 \begin{itemize}
   \item PREROUTING - right after a packet is received and before any routing
@@ -651,7 +657,7 @@ stack where the \emph{chain of rules} they represent will be applied
   \includegraphics[scale=0.5]{src/img/iptables-organization}
   \caption[A flowgraph showing the processing stack in netfilter/iptables.]{A
   flowgraph showing the usual processing stack in netfilter/iptables. The part
-  on a yellow background is meaningful only for locally delivered or locally
+  with a yellow background is meaningful only for locally delivered or locally
   generated packets. The one with a purple background is traversed for all
   packets that only transit (are routed by) this machine.}
   \label{fig:iptables-organization}
@@ -673,13 +679,14 @@ existence is twofold:
 \end{itemize}
 
 \paragraph{Rules.}
-Tables and chains are only meant to organize rules that are essentially
-\textbf{(match, action)} pairs.  The first part, the \textbf{match}, is a
+Tables and chains are only meant to organize the rules.  A rule is essentially
+a \textbf{(match, action)} pair.  The first part, the \textbf{match}, is a
 conjunction of zero or more \emph{predicates} that refer either to header
 fields of the packet or to some local state associated with it.  The second
 part, the \textbf{action}, specifies \emph{what} should happen with the packets
 that match.  It can be followed by zero or more \emph{target parameters}. The
-resulting grammar is shown in \labelindexref{Listing}{lst:rule-grammar}.
+grammar that summarizes this is shown in
+\labelindexref{Listing}{lst:rule-grammar}.
 
 \begin{listing}
   \lstset{numbers=none, frame=single, basicstyle=\ttfamily,
@@ -701,6 +708,7 @@ target extensions.  Match extensions are \emph{activated} with the
 \labelindexref{Appendix}{app:iptables-extensions} summarizes some of the
 extensions often used in practice.
 
+
 \subsection{Relation to \emph{conntrack}}
 \lstset{language=sh,basicstyle=\ttfamily}
 
@@ -713,8 +721,8 @@ firewalls}.
 conntrack is part of netfilter and it is embedded in the processing stack
 described in \labelindexref{Figure}{fig:iptables-organization}.  More
 precisely, it is called right after the raw table in the PREROUTING and OUTPUT
-chains.  In fact, one of the purposes of the raw table is to allow skipping
-connection tracking logic for certain traffic (i.e.
+chains.  In fact, one of the purposes of the \textbf{raw} table is to allow
+\textbf{skipping} connection tracking logic for certain traffic (i.e.
 \lstinline{-j CT --notrack}).
 
 Internally, for each connection, it holds two 5-tuples, one for each direction.
