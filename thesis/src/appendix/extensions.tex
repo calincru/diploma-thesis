@@ -1,0 +1,38 @@
+\chapter{iptables match/target extensions}
+\label{app:iptables-extensions}
+
+\lstset{language=sh,basicstyle=\ttfamily}
+
+%%%%%%%%%%%%%%%%%%%
+%% MATCH EXTENSIONS
+%%%%%%%%%%%%%%%%%%%
+\begin{table}[htbp]
+  \footnotesize
+  \begin{tabularx}{\textwidth}{ |X|X| }
+    \hline
+    \multicolumn{2}{ |c| }{\normalsize{Match extensions}}
+    \\ \hline
+
+    % Comment
+    \lstinline{--comment} \emph{comment} &
+    Administrator-friendly way of commenting rules.
+    \\ \hline
+
+  \end{tabularx}
+  \caption{Common iptables match extensions.}
+
+  \bigskip
+
+  \begin{tabularx}{\textwidth}{ |X|X| }
+    \hline
+    \multicolumn{2}{ |c| }{\normalsize{Target extensions}}
+    \\ \hline
+
+    % SNAT
+    \lstinline{-j SNAT --to-source ip[-ip][:port[-port]]} &
+    Source NAT.
+    \\ \hline
+
+  \end{tabularx}
+  \caption{Common iptables target extensions.}
+\end{table}

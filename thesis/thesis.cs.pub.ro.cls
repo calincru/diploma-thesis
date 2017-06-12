@@ -76,6 +76,8 @@
 \usepackage{parcolumns}
 \usepackage{wrapfig}
 \usepackage{soul}
+\usepackage{tabularx}
+\usepackage{boldline}
 \usepackage{color}
 \usepackage[dvipsnames]{xcolor}
 
@@ -86,12 +88,12 @@
 
 \newtheorem{definition}{Definition}[section]
 
-\lstset{
-  numbers=left, numberstyle=\footnotesize,
-  frame=lines, captionpos=b,
-  breaklines=true,
-  basicstyle=\ttfamily
-}
+% \lstset{
+%   numbers=left, numberstyle=\footnotesize,
+%   frame=lines, captionpos=b,
+%   breaklines=true,
+%   basicstyle=\ttfamily
+% }
 
 % notations and abbreviations
 % http://www-h.eng.cam.ac.uk/help/tpl/textprocessing/nomencl.pdf

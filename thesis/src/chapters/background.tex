@@ -564,8 +564,6 @@ integrate policy validation as part of the symbolic execution engine, by means
 of various computation logics, such as CTL (Computation tree
 logic)\abbrev{CTL}{Computation tree logic}.
 
-\todo{Add citation here.}
-
 
 \section{iptables}
 
@@ -586,7 +584,7 @@ of the Linux kernel, such as ipchains and ipfwadm.
 that it is the main application used by system administrators to define rules
 for packet filtering/mangling, and having been an essential part of the initial
 project that eventually evolved into today's framework, it is common to refer
-through \emph{iptables} to the entire software stack that enables this and use
+through \emph{iptables} to the entire software stack that enables this, and use
 \emph{iptables} and \emph{netfilter} interchangeably.  In fact, by
 \emph{modelling iptables} we actually mean modelling the netfilter logic that
 it triggers.
@@ -595,9 +593,9 @@ it triggers.
 \subsection{Organization}
 
 netfilter attains a modular internal organization by splitting rules into a
-hierarchy of predefined \textbf{tables} and \textbf{chains}
-(\labelindexref{Figure}{fig:iptables-hierarchy}).  The latter can be further
-extended by users, as we will shortly see.
+hierarchy of predefined \textbf{tables} and \textbf{chains}.  The latter can be
+further extended by users, as depicted in
+\labelindexref{Figure}{fig:iptables-hierarchy}.
 
 \begin{figure}[h]
   \centering
@@ -607,22 +605,21 @@ extended by users, as we will shortly see.
   visualization of the tables/chains hierarchy in netfilter. Note that there is
   at least one more table, \emph{security}, that is not included here. Also,
   while it is possible to have rules from different tables \emph{jump} to the
-  same user-defined chain, it is not very common.}
+  same user-defined chain (as depicted here), it is not a good practice.}
   \label{fig:iptables-hierarchy}
 \end{figure}
 
 \paragraph{Tables.}
-Informally, \textbf{tables} are used to classify the rules
-based on their purpose.  Thus, each table is introduced to serve a specific
-purpose.  The most commonly used ones are:
+Informally, tables are used to classify the rules based on their purpose.
+Thus, each table is introduced to serve a specific function.  The most commonly
+used ones are:
 \begin{itemize}
-  \item \textbf{filter} - used for packet filtering only
-  \item \textbf{nat} - used for one-to-many NAT, port forwarding, masquerading,
-    packet redirecting; it is discussed in more detail in
-    \labelindexref{Section}{sub-sec:nat-table}.
-  \item \textbf{mangle} - used for specialized packet alteration; one commonly
-    used feature is \emph{packet marking}, which allows customized traffic
-    handling by the rules following it in the processing stack.
+  \item \textbf{filter} - for packet filtering only
+  \item \textbf{nat} - for one-to-many NAT, port forwarding, masquerading,
+    packet redirecting
+  \item \textbf{mangle} - for specialized packet alteration; one feature that
+    comes up often in practice is \emph{packet marking}, which allows
+    customized traffic handling by chains following it in the processing stack.
 \end{itemize}
 
 The lowercase spelling of table names is part of the convention adopted by
@@ -632,37 +629,126 @@ extension and hot-plugging.  Therefore, tables are traversed in a
 pre-established, built-in \textbf{order}: raw, mangle, nat, filter.
 
 \paragraph{Chains.}
-As far as \textbf{chains} are concerned, they specify the point in the
-processing stack where the \emph{chain of rules} they represent will be
-applied (\labelindexref{Figure}{fig:iptables-organization}).
+As far as the chains are concerned, they specify the point in the processing
+stack where the \emph{chain of rules} they represent will be applied
+(\labelindexref{Figure}{fig:iptables-organization}).  There are 5
+\textbf{built-in chains}:
+\begin{itemize}
+  \item PREROUTING - right after a packet is received and before any routing
+    decision is made
+  \item INPUT - for locally delivered packets
+  \item FORWARD - all packets that transit this machine will be matched against
+    the rules in this chain
+  \item OUTPUT - packets sent from the machine itself will be visiting this
+    chain
+  \item POSTROUTING - packets enter this chain after the last routing decision
+    is made and just before handing them off to the hardware
+\end{itemize}
 
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
   \includegraphics[scale=0.5]{src/img/iptables-organization}
-  \caption{A flowgraph showing the usual processing stack in
-  netfilter/iptables.}
+  \caption[A flowgraph showing the processing stack in netfilter/iptables.]{A
+  flowgraph showing the usual processing stack in netfilter/iptables. The part
+  on a yellow background is meaningful only for locally delivered or locally
+  generated packets. The one with a purple background is traversed for all
+  packets that only transit (are routed by) this machine.}
   \label{fig:iptables-organization}
 \end{figure}
 
-\todo{built-in/user-defined}
+Additional chains can be defined; in netfilter/iptables terminology they are
+called \textbf{user-defined chains}, and are featured in
+\labelindexref{Figure}{fig:iptables-hierarchy}. The motivation behind their
+existence is twofold:
+\begin{itemize}
+  \item To \textbf{share} logic between two built-in chains from the same table
+    and avoid rule duplication.  For instance, we might want to apply the same
+    \emph{filtering} rules both in the FORWARD chain and in the INPUT chain.
+  \item To achieve some sort of \textbf{separation of concerns} when organizing
+    the rules in a large chain. An example is a chain which only does SNAT, and
+    the last rule of the POSTROUTING chain simply jumps to it.  In this way, we
+    can short-circuit the traversal of this chain (i.e. \hltexttt{-j ACCEPT})
+    for traffic that need not be SNAT'ed.
+\end{itemize}
 
 \paragraph{Rules.}
-\todo{Mention its extensions-based design and briefly discuss the two types of
-extensions and give some examples.}
+Tables and chains are only meant to organize rules that are essentially
+\textbf{(match, action)} pairs.  The first part, the \textbf{match}, is a
+conjunction of zero or more \emph{predicates} that refer either to header
+fields of the packet or to some local state associated with it.  The second
+part, the \textbf{action}, specifies \emph{what} should happen with the packets
+that match.  It can be followed by zero or more \emph{target parameters}. The
+resulting grammar is shown in \labelindexref{Listing}{lst:rule-grammar}.
 
-\todo{don't make these paragraphs; itemize or smth}
-\paragraph{Match extensions.}
-\paragraph{Target extensions.}
+\begin{listing}
+  \lstset{numbers=none, frame=single, basicstyle=\ttfamily,
+    xleftmargin=0.18\textwidth, xrightmargin=0.18\textwidth
+  }
+\begin{lstlisting}
+rule-specification = [matches...] [target]
+match = -m matchname [per-match-options]
+target = -j targetname [per-target-options]
+\end{lstlisting}
+  \caption{Grammar of an iptables rule, taken from the Linux manual pages.}
+  \label{lst:rule-grammar}
+\end{listing}
 
+Rules in iptables feature an extensions-based design with separate extensions
+for matches and targets. There are over 60 match extensions and around 40
+target extensions.  Match extensions are \emph{activated} with the
+\textbf{-m/--match} flag followed by the extension name.
+\labelindexref{Appendix}{app:iptables-extensions} summarizes some of the
+extensions often used in practice.
 
-\subsection{Relation to Connection Tracking}
-\todo{Specify that connection tracking, even if part of the netfilter project
-in the kernel source code organization, is orthogonal to iptables/netfilter.
-However, netfilter can look at connection tracking info to take decisions. give
-example; say that another example (snat/dnat) is given below.}
+\subsection{Relation to \emph{conntrack}}
+\lstset{language=sh,basicstyle=\ttfamily}
 
+Connection tracking (also known as \emph{the state machine}) is the mechanism
+that allows a Linux box to relate incoming packets to tracked connections.
+\textbf{conntrack} is the name of the kernel module that implements this
+functionality.  Firewalls that include it are generally called \emph{stateful
+firewalls}.
 
-\subsection{The \emph{nat} table}\label{sub-sec:nat-table}
-\todo{Explain how NAT works, the fact that the table is analysed only when the
-connection is NEW; DNAT/SNAT virtual states, --ctstate examples}
+conntrack is part of netfilter and it is embedded in the processing stack
+described in \labelindexref{Figure}{fig:iptables-organization}.  More
+precisely, it is called right after the raw table in the PREROUTING and OUTPUT
+chains.  In fact, one of the purposes of the raw table is to allow skipping
+connection tracking logic for certain traffic (i.e.
+\lstinline{-j CT --notrack}).
+
+Internally, for each connection, it holds two 5-tuples, one for each direction.
+A 5-tuple contains protocol number, source IP, source port, destination IP and
+destination port.  It distinguishes four states:
+\begin{itemize}
+  \item \textbf{NEW}.  It is the state of a connection when the first packet
+    (within that connection) is seen.
+  \item \textbf{ESTABLISHED}.  In this state, traffic in both directions has
+    been seen.  A connection in state NEW is promoted to state ESTABLISHED once
+    a reply packet is received.
+  \item \textbf{RELATED}.  A connection is considered RELATED when it is
+    related to another already ESTABLISHED connection.  An example is a FTP
+    data connection which is related to an established FTP control connection.
+  \item \textbf{INVALID}.  A connection switches to the INVALID state if the
+    packet cannot be identified, which could be caused by various system errors
+    (going out of memory, etc).
+\end{itemize}
+
+By itself, conntrack is simply an aggregator of connections data.  It becomes
+particularly powerful when the information it holds is used by iptables.  To do
+so, the \textbf{conntrack} match extension must be loaded (i.e.
+\lstinline{-m conntrack}).  The most common use-case is matching against the
+connection state itself (i.e. \lstinline{-m conntrack --ctstate NEW}).  In
+addition to the four states which are defined by the conntrack module,
+netfilter adds three more \textbf{virtual} states to be used by iptables:
+\begin{itemize}
+  \item \textbf{UNTRACKED}.  A state explicitly set in the raw table for
+    untracked traffic, as shown above.
+  \item \textbf{SNAT}.  A state set for connections that have their packets
+    Source NAT'ed by this machine.
+  \item \textbf{DNAT}.  A state set for connections for which this machine
+    performs Destination NAT (e.g. port forwarding).
+\end{itemize}
+
+Besides the connection state, it is also possible to match against any of the
+10 fields which form the two 5-tuples that are stored for every connection.
