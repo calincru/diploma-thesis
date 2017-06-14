@@ -104,13 +104,13 @@ in order to make them be truly alike is to add some \emph{virtual devices} to
 model chain traversal. The resulting schema is shown in
 \labelindexref{Figure}{fig:iptables-2}.
 
-\todo{Other caption?}
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
   \includegraphics[scale=0.45]{src/img/iptables-2}
   \caption[iptables model (II): Incorporated chain virtual devices.]{iptables
-  model (II): Incorporated chain virtual devices.}
+  model (II): Incorporated chain virtual devices.  The purple squares are
+  Iptables Virtual Devices (IVDs) and they abstract chain traversal logic.}
   \label{fig:iptables-2}
 \end{figure}
 
@@ -132,12 +132,8 @@ logic to be modelled on a per-chain basis.  In fact, this can be further
 divided by acknowledging that each chain IVD, as it represented here, is a
 sequence of concrete (per table) chain traversals; for instance, there are 3
 tables that might define rules in the PREROUTING chain: raw, mangle, nat.
-Therefore, we can further improve our model by splitting each chain IVD as
-shown in \labelindexref{Figure}{fig:iptables-2-composition}.
-
-\todo{say that now each such chain IVD is just a ordered list of rules which
-must be modelled, so we simplified the problem, etc; then say how the naive
-implementation (pseudocode) would be, to introduce the next section.}
+Therefore, we can improve our model by splitting each chain IVD as shown in
+\labelindexref{Figure}{fig:iptables-2-composition}.
 
 \begin{figure}[h]
   \centering
@@ -148,21 +144,47 @@ implementation (pseudocode) would be, to introduce the next section.}
   \label{fig:iptables-2-composition}
 \end{figure}
 
-\todo{Give some overview of where we are currently standing and how we plan to
-proceed. then.. proceed; start from router, augment it; make clear what virtual
-devices are (we used this term before blabla); reiterate the encapsulation
-idea}
-\todo{once we show the first prototype, take some time to discuss the design:
-parsing, validation, code generation, their importance, how they play together,
-the fact that the table/chain/rule parsing as well as the "target" (the links
-as defined in that figure, etc) are always the same, but we need to consider
-the extensions-based design, etc. Mention that more details about the actual
-implementation are given in section implementation}.
-\todo{finish by saying that our model in figure XX hides some quite involved
-logic caused by the support for user-specified chains and others, which are
-discussed next..}
-\todo{also show a pseudocode of the most important one, the traversal of a
-chain of rules}
+Thus, we can assert that we reduced our problem of modelling an
+iptables-enabled device to that of implementing (in SEFL) the traversal of a
+chain of rules. \labelindexref{Algorithm}{algo:chain-traversal} captures the
+naive but straightforward way of doing that:
+
+\begin{algorithm}[H]
+  \SetKwInOut{Inputs}{inputs}
+  \SetKwInOut{Output}{output}
+  \SetKwProg{TraverseChain}{TraverseChain}{}{}
+
+  \TraverseChain{$(C, P)$}{
+    \Inputs{A chain $C$ and a packet $P$}
+    \Output{The target $T$ to jump to}
+
+    \ForEach{rule $r \in$ C.rules}{
+      \If{$m(p)$ is true $\forall m \in$ r.matches}{
+        \textbf{return} $r.target$
+      }
+    }
+    \textbf{return} $C.policy$
+  }
+  \caption[Traversing a chain.]{Traversing a chain. A chain aggregates a list
+  of \emph{rules} and a \emph{default target} (i.e. policy). A rule contains a
+  list of \emph{matches} and a \emph{target}.}
+  \label{algo:chain-traversal}
+\end{algorithm}
+
+It is possible to express this algorithm in SEFL.  However, there are two
+problems with it:
+\begin{itemize}
+  \item It \textbf{ignores} a couple of essential features in iptables (e.g.
+    jumping to user-defined chains).  Thus,
+    \labelindexref{Figure}{fig:iptables-2}, even though correct in terms of the
+    abstractions it makes, it hides a couple of rather involved functionality.
+  \item It could be inefficient due to many \hltexttt{if/then/else} statements
+    that result.  It is worth reiterating here that SEFL and SymNet do not give
+    outstanding performance results by default; they require well crafted
+    models.
+\end{itemize}
+
+We tackle the former in the next couple of sections.
 
 \subsection{User-defined chains}
 \todo{explain WHY they complicate the simple model in the previous section.

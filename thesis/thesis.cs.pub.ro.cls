@@ -68,6 +68,7 @@
 % Added by me
 %%%%%%%%%%%%%%
 % Nicer code listings
+\usepackage[ruled,vlined]{algorithm2e}
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amssymb}
