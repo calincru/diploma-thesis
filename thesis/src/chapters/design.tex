@@ -1,12 +1,65 @@
 \chapter{Design and implementation}\label{chapter:design}
 
-\todo{chapter overview; will present the high-level model and increase amount
-of details gradually -- also show a pseudocode of the most important one, the
-traversal of a chain of rules; then, implementation details follow, compiler-like
-design, etc; we then go into more details about a few extensions and finally,
-limitations of the model are discussed}
+In this chapter we delve into the design and the implementation details of
+\emph{iptables-to-sefl}, the tool we built to generate SEFL models from
+iptables configurations.
+
+We start by presenting the template we use to build models for iptables-enabled
+devices.  We increase its complexity and the amount of details as we gradually
+introduce features supported in the finalized project.  Following that, we
+cover most of the implementation-related decisions that are particularly
+distinctive to our tool.  We sum up this chapter with an overview of the
+limitations that come up along the way.
+
 
 \section{Towards a model}
+
+Building a SEFL model which can then be verified by SymNet is as simple as
+providing two Map data structures, as discussed in
+\labelindexref{Section}{sec:symnet-sefl}:
+\begin{enumerate}[a)]
+  \item the first one, from \emph{source} ports to \emph{destination} ports; it
+    implicitly defines a directed graph which is our formal way of defining
+    networks.
+  \item the other one, from \emph{ports} (i.e. nodes in this graph) to SEFL
+    instructions; this one captures the actual behaviour of each network
+    element.
+\end{enumerate}
+
+The goal of this chapter is to show how we provide these Maps starting from a
+deployment of iptables rules, in such a way that once fed into SymNet, the
+verified behaviour is that of an iptables-enabled device.  To do so, in this
+section we start by describing the high-level idea of our model as well as the
+underlying algorithms that we use.
+
+\bigskip
+
+To ease the bootstrapping of our modelling process, we notice that packet
+processing in netfilter is built around the routing decision.  To be more
+precise, in \labelindexref{Figure}{fig:iptables-organization} from the previous
+chapter there are three points in the processing stack where the routing table
+is consulted.  Moreover, a routing decision was the only feature of the simple
+router model we introduced in \labelindexref{Section}{sub-sec:building-models}.
+Well-known software engineering practices tell us that we should reuse existing
+functionality as long as it makes sense to do so.  In our scenario, it does.
+
+Thus, in the first iteration of our end goal of reaching an iptables model from
+a router model we separate the only routing decision featured in
+\labelindexref{Figure}{fig:router-model} into three different routing
+decisions, as shown in \labelindexref{Figure}{fig:iptables-1}.
+
+\begin{figure}[h]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.5]{src/img/iptables-1}
+  \caption[iptables model (I): Separated routing decisions.]{iptables model
+  (I): Separated routing decisions.\\NOTE: it is important to assign unique
+  port names because there are no name scopes; implementation-wise, this is
+  achieved by prefixing the \emph{role} of the port (e.g.  \emph{in},
+  \emph{out}) by the unique name of the \emph{virtual device} it belongs to.}
+  \label{fig:iptables-1}
+\end{figure}
+
 \todo{Give some overview of where we are currently standing and how we plan to
 proceed. then.. proceed; start from router, augment it; make clear what virtual
 devices are (we used this term before blabla); reiterate the encapsulation
@@ -20,6 +73,8 @@ implementation are given in section implementation}.
 \todo{finish by saying that our model in figure XX hides some quite involved
 logic caused by the support for user-specified chains and others, which are
 discussed next..}
+\todo{also show a pseudocode of the most important one, the traversal of a
+chain of rules}
 
 \subsection{User-defined chains}
 \todo{explain WHY they complicate the simple model in the previous section.
