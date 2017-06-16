@@ -139,15 +139,15 @@ Therefore, we can improve our model by splitting each chain IVD as shown in
   \centering
   \captionsetup{justification=centering}
   \includegraphics[scale=0.5]{src/img/iptables-2-composition}
-  \caption[Concrete (per-table chains) make up individual chain IVDs.]{Concrete
-  (per-table chains) make up individual chain IVDs.}
+  \caption[Concrete (per-table) chains make up individual chain IVDs.]{Concrete
+  (per-table) chains make up individual chain IVDs.}
   \label{fig:iptables-2-composition}
 \end{figure}
 
-Thus, we can assert that we reduced our problem of modelling an
-iptables-enabled device to that of implementing (in SEFL) the traversal of a
-chain of rules. \labelindexref{Algorithm}{algo:chain-traversal} captures the
-naive but straightforward way of doing that:
+Thus, we claim that we reduced the problem of modelling an iptables-enabled
+device to that of implementing (in SEFL) the traversal of a chain of rules.
+\labelindexref{Algorithm}{algo:chain-traversal} captures the naive but
+straightforward way of doing this:
 
 \begin{algorithm}[H]
   \SetKwInOut{Inputs}{inputs}
@@ -177,7 +177,7 @@ problems with it:
   \item It \textbf{ignores} a couple of essential features in iptables (e.g.
     jumping to user-defined chains).  Thus,
     \labelindexref{Figure}{fig:iptables-2}, even though correct in terms of the
-    abstractions it makes, it hides a couple of rather involved functionality.
+    abstractions it makes, hides a couple of rather involved functionality.
   \item It could be inefficient due to many \hltexttt{if/then/else} statements
     that result.  It is worth reiterating here that SEFL and SymNet do not give
     outstanding performance results by default; they require well crafted
@@ -186,12 +186,141 @@ problems with it:
 
 We tackle the former in the next couple of sections.
 
+
 \subsection{User-defined chains}
-\todo{explain WHY they complicate the simple model in the previous section.
-explain that our final model reflects their exact semantics}
-\todo{what is an Iptables Virtual Device (IVD); what is a Chain IVD; cover in
-detail all components of a Chain IVD: input dispatcher, contiguous IVDs, output
-dispatchers}
+\newcommand{\RETURN}{\textbf{\texttt{RETURN}}\xspace}
+
+User-defined chains (also known as user-specified chains, or simply user chains)
+differ from built-in chains in that they are not automatically traversed at
+specific points in the processing stack of a packet.  Instead, they are
+traversed for certain traffic that matches rules they are a target of.  In
+other words, built-in chains are unconditionally matched against, while
+user-specified chains are conditionally consulted at adjustable points.
+
+One might observe that \labelindexref{Algorithm}{algo:chain-traversal} is still
+valid even in the context of rules that jump to user-defined chains, as we can
+simply forward packets to another port that applies the same logic using the
+rules in that chain.  What actually makes our model a lot more complex is the
+special \RETURN target which is essential in advanced iptables configurations
+that make great use of user chains.
+
+When a matching rule jumps to \RETURN, the next rule that is matched against is
+the successor of the rule that previously caused a jump to the current user
+chain, as shown in \labelindexref{Figure}{fig:iptables-user-chains}.
+Therefore, when combined with \RETURN, user-specified chains enable chain
+traversal orders that resemble function calls in common procedural languages;
+the \emph{callee} corresponds to the user chain, the call itself is a jump
+action, and the caller is analogous to the original chain where the jump to the
+the user chain has been made.
+
+\begin{figure}[h]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.6]{src/img/iptables-user-chains}
+  \caption[Control flow of user-defined chains in iptables.]{Control flow of
+  user-defined chains in iptables, featuring the \RETURN target.  Following the
+  function analogy, \texttt{CHAIN1} here can be interpreted as a function that
+  encapsulates the logic for filtering out traffic arrived on input interfaces
+  other than \emph{eth0}.}
+  \label{fig:iptables-user-chains}
+\end{figure}
+
+In order to include this behaviour in our chain SEFL models (i.e. chain IVDs),
+let us first notice that as long as there is no rule in a chain that might jump
+to a user-specified one, \labelindexref{Algorithm}{algo:chain-traversal} is
+correct.  Thus, driven by the motivation to reduce our more complicated problem
+to one that we know how to solve, we observe that we could obtain \RETURN-free
+lists of rules by splitting our original one on boundaries given by rules that
+might jump to user-defined chains (called hereafter \textbf{boundary rules}).
+
+An (abstract) example of this idea is presented in
+\labelindexref{Figure}{splitting-rules}.  Rectangles correspond to rules in a
+chain.  The ones that might jump to user chains are highlighted in red.
+Following the boundary rule-splitting idea, three new ordered sublists of rules
+result, as pointed out by the dashed brackets.
+
+\begin{figure}[h]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.6]{src/img/splitting-rules}
+  \caption[Splitting rules in a chain on boundary rules.]{Splitting rules in a
+  chain on boundary rules.  A boundary rule is a rule that might jump to a
+  user-defined chain.}
+  \label{fig:splitting-rules}
+\end{figure}
+
+How do we model this new internal structure of a chain IVD using SEFL?
+Firstly, by decomposing its previously unified logic into multiple smaller IVDs
+called \textbf{contiguous IVDs}. Each one of these new virtual devices that
+make up a chain IVD implements the simple traversal algorithm presented in the
+previous section for a sublist of rules.  Furthermore, to do this, it turns out
+that we do not need to separate boundary rules from the sublist that
+\textbf{precede} them.  This is indicated via bold brackets
+\labelindexref{Figure}{fig:splitting-rules}.  This separation is not needed
+because our splitting guarantees that the last rule in the previous sublist
+does not jump to a user chain, and, thus, can lead to two actions only:
+\begin{enumerate*}[a)]
+  \item matching the rule and jumping to a built-in target (e.g. \texttt{NAT,
+    ACCEPT, RETURN, MARK}), and
+  \item not matching the rule and \emph{continuing} to the next one,
+\end{enumerate*}
+none of which could lead to a \RETURN to the succeeding one.  In other words,
+we split only \textbf{after} boundary rules because that is the point we might
+\textbf{need to return} to.
+
+Besides organizing rules on contiguous IVDs, we also need to link them
+together, such that if no rule matches, packets are forwarded to the next one.
+Finally, we need to dispatch as part of our SEFL model both input and returned
+packets, as follows:
+\begin{itemize}
+  \item \textbf{Input} packets to one of the (possibly) many contiguous IVDs
+    that make up a chain IVD.  That is, newly arrived packets should always be
+    forwarded to the first one, while \emph{returning} packets should be
+    forwarded to the one that follows the \emph{caller} IVD (using the function
+    analogy from a previous paragraph).  To do this, a metadata field is
+    allocated and assigned when performing jumps, and deallocated when
+    returning.  This is essentially a SEFL stack.  The input dispatch is
+    performed by a new virtual device component called
+    \textbf{InputTagDispatcher}.
+  \item \textbf{Returned} packets to the caller IVD. Since this is a dynamic
+    decision too (i.e. multiple chains could jump to the same user chain),
+    another tag is stored as a flow metadata which determines the
+    \textbf{backlink} to forward the packet to.  The virtual device that does
+    this is called \textbf{OutputTagDispatcher}.
+\end{itemize}
+
+The resulting internal organization of a virtual device that models a chain is
+shown in \labelindexref{Figure}{fig:chain-internal}.
+
+\begin{figure}[h]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.5]{src/img/chain-internal}
+  \caption[Internal organization of a chain IVD.]{Internal organization of a
+  chain IVD.  It has one input port, one accept port, one drop port, a number
+  of jump ports equal to the number of rules that might jump to user chains,
+  and a variable (but still static) number of backlinks, that corresponds to
+  the chains that might jump to this one.  Each \textbf{contiguous IVD} has 1
+  input and 5 outputs: one for \texttt{ACCEPT} (green), one for \texttt{DROP}
+  (skipped due to lack of space), one for forwarding packet to the next
+  contiguous IVD (yellow; for the last one it is given by the chain policy),
+  one for jumping to a user chain (magenta; only in the last rule of that
+  sublist of rules), and, finally, one for returning to the caller chain (blue;
+  managed by \textbf{OutputTagDispatcher}).}
+  \label{fig:chain-internal}
+\end{figure}
+
+\bigskip
+
+To summarize this section, we started with a model suitable for iptables
+configurations that do not make use of the \RETURN target (and, thus, make
+little use of user-defined chains) and have extended it to support the control
+flow it adds.  We showed how we split a chain of rules into multiple sublists
+that can then be modelled as separate contiguous IVDs, a new virtual device we
+introduced that applies the naive algorithm presented in the previous section
+(\labelindexref{Algorithm}{algo:chain-traversal}).  Finally, we illustrated how
+all these new features play out together in a comprehensive diagram
+(\labelindexref{Section}{fig:chain-internal}).
 
 \subsection{Network Address Translation}
 \todo{start with all kinds of NAT supported? SNAT, DNAT, MASQUERADE (mention

@@ -69,18 +69,20 @@
 %%%%%%%%%%%%%%
 % Nicer code listings
 \usepackage[ruled,vlined]{algorithm2e}
+\usepackage[shortlabels, inline]{enumitem}
+\usepackage[dvipsnames]{xcolor}
+
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage[shortlabels, inline]{enumitem}
-\usepackage{minted}
-\usepackage{parcolumns}
-\usepackage{wrapfig}
-\usepackage{soul}
-\usepackage{tabularx}
 \usepackage{boldline}
 \usepackage{color}
-\usepackage[dvipsnames]{xcolor}
+\usepackage{minted}
+\usepackage{parcolumns}
+\usepackage{soul}
+\usepackage{tabularx}
+\usepackage{wrapfig}
+\usepackage{xspace}
 
 \definecolor{bg}{rgb}{0.95,0.95,0.95}
 \newenvironment{sourcecode}[2]
