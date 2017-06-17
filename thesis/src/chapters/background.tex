@@ -262,11 +262,11 @@ the construction of the symbolic execution tree
 \end{listing}
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
-\centering
-\includegraphics[scale=0.5]{src/img/symb-tree}
-\captionof{figure}{Symbolic execution tree for the C function in
-  \labelindexref{Listing}{lst:simple-c}.}
-\label{fig:simple-tree}
+  \centering
+  \includegraphics[scale=0.5]{src/img/symb-tree}
+  \captionof{figure}{Symbolic execution tree for the C function in
+    \labelindexref{Listing}{lst:simple-c}.}
+  \label{fig:simple-tree}
 \end{minipage}
 
   \item At \textbf{line 5}, the first \hltexttt{if/then/else} statement is
@@ -710,7 +710,7 @@ target extensions.  Match extensions are \emph{activated} with the
 extensions often used in practice.
 
 
-\subsection{Relation to \emph{conntrack}}
+\subsection{Relation to \emph{conntrack}}\label{sub-sec:conntrack}
 \lstset{language=sh,basicstyle=\ttfamily}
 
 Connection tracking (also known as \emph{the state machine}) is the mechanism
@@ -728,19 +728,19 @@ chains.  In fact, one of the purposes of the \textbf{raw} table is to allow
 
 Internally, for each connection, it holds two 5-tuples, one for each direction.
 A 5-tuple contains protocol number, source IP, source port, destination IP and
-destination port.  It distinguishes four states:
+destination port.  It recognizes four states:
 \begin{itemize}
-  \item \textbf{NEW}.  It is the state of a connection when the first packet
+  \item \NEW.  It is the state of a connection when the first packet
     (within that connection) is seen.
-  \item \textbf{ESTABLISHED}.  In this state, traffic in both directions has
-    been seen.  A connection in state NEW is promoted to state ESTABLISHED once
-    a reply packet is received.
-  \item \textbf{RELATED}.  A connection is considered RELATED when it is
-    related to another already ESTABLISHED connection.  An example is a FTP
+  \item \ESTABLISHED.  In this state, traffic in both directions has been seen.
+    A connection in state \NEW is promoted to state \ESTABLISHED once a reply
+    packet is received.
+  \item \RELATED.  A connection is considered \RELATED when it is
+    related to another already \ESTABLISHED connection.  An example is a FTP
     data connection which is related to an established FTP control connection.
-  \item \textbf{INVALID}.  A connection switches to the INVALID state if the
-    packet cannot be identified, which could be caused by various system errors
-    (going out of memory, etc).
+  \item \INVALID.  A connection switches to the \INVALID state if the packet
+    cannot be identified, which could be caused by various system errors (going
+    out of memory, etc).
 \end{itemize}
 
 By itself, conntrack is simply an aggregator of connections data.  It becomes
@@ -751,12 +751,12 @@ connection state itself (i.e. \lstinline{-m conntrack --ctstate NEW}).  In
 addition to the four states which are defined by the conntrack module,
 netfilter adds three more \textbf{virtual} states to be used by iptables:
 \begin{itemize}
-  \item \textbf{UNTRACKED}.  A state explicitly set in the raw table for
-    untracked traffic, as shown above.
-  \item \textbf{SNAT}.  A state set for connections that have their packets
-    Source NAT'ed by this machine.
-  \item \textbf{DNAT}.  A state set for connections for which this machine
-    performs Destination NAT (e.g. port forwarding).
+  \item \UNTRACKED.  A state explicitly set in the raw table for untracked
+    traffic, as shown above.
+  \item \SNAT.  A state set for connections that have their packets Source
+    NAT'ed by this machine.
+  \item \DNAT.  A state set for connections for which this machine performs
+    Destination NAT (e.g. port forwarding).
 \end{itemize}
 
 Besides the connection state, it is also possible to match against any of the

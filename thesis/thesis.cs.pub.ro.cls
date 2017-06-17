@@ -91,6 +91,19 @@
 
 \newtheorem{definition}{Definition}[section]
 
+% Maybe move these out of here.
+\newcommand{\NEW}{\textbf{\texttt{NEW}}\xspace}
+\newcommand{\ESTABLISHED}{\textbf{\texttt{ESTABLISHED}}\xspace}
+\newcommand{\RELATED}{\textbf{\texttt{RELATED}}\xspace}
+\newcommand{\INVALID}{\textbf{\texttt{INVALID}}\xspace}
+\newcommand{\UNTRACKED}{\textbf{\texttt{UNTRACKED}}\xspace}
+\newcommand{\SNAT}{\textbf{\texttt{SNAT}}\xspace}
+\newcommand{\DNAT}{\textbf{\texttt{DNAT}}\xspace}
+
+\newcommand{\RETURN}{\textbf{\texttt{DNAT}}\xspace}
+\newcommand{\REDIRECT}{\textbf{\texttt{REDIRECT}}\xspace}
+\newcommand{\MASQUERADE}{\textbf{\texttt{MASQUERADE}}\xspace}
+
 % \lstset{
 %   numbers=left, numberstyle=\footnotesize,
 %   frame=lines, captionpos=b,
