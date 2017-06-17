@@ -735,9 +735,9 @@ destination port.  It recognizes four states:
   \item \ESTABLISHED.  In this state, traffic in both directions has been seen.
     A connection in state \NEW is promoted to state \ESTABLISHED once a reply
     packet is received.
-  \item \RELATED.  A connection is considered \RELATED when it is
-    related to another already \ESTABLISHED connection.  An example is a FTP
-    data connection which is related to an established FTP control connection.
+  \item \RELATED.  A connection is tagged as \RELATED when it is related to
+    another already \ESTABLISHED connection.  An example is a FTP data
+    connection which is related to an established FTP control connection.
   \item \INVALID.  A connection switches to the \INVALID state if the packet
     cannot be identified, which could be caused by various system errors (going
     out of memory, etc).
