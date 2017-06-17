@@ -1,8 +1,8 @@
 \chapter{Background}\label{chapter:background}
 
 This chapter introduces the concepts which form the building blocks for our
-iptables model, making use of the extensive work conducted by Stoenescu et al.
-\cite{stoenescu2013symnet, stoenescu2016symnet}
+iptables model, making use of the extensive work conducted by Stoenescu et
+al.~\cite{stoenescu2013symnet, stoenescu2016symnet}
 
 We first give a short overview of the broad field of network verification, with
 an emphasis on the approach that we use: static verification powered by
@@ -86,14 +86,14 @@ proving or disproving its correctness.  The model is an abstract (i.e.
 mathematical) representation of the network that can be easily handled by the
 proof procedure.
 
-The most well-established proof procedure is \textbf{model checking}
-\cite{clarke1999model, mcmillan2003model} which does an exhaustive exploration
-of the states a system can be in to verify that a given property holds. Another
-technique which has been thoroughly explored is \textbf{reduction to SAT}
-(AntEater \cite{mai2011debugging}).  However, for large models that result even
-from moderately sized networks the aforementioned approaches render the
-verification problem intractable.  Other modelling/verification techniques
-which have been considered over time are:
+The most well-established proof procedure is \textbf{model
+checking}~\cite{clarke1999model, mcmillan2003model} which does an exhaustive
+exploration of the states a system can be in to verify that a given property
+holds. Another technique which has been thoroughly explored is
+\textbf{reduction to SAT} (AntEater~\cite{mai2011debugging}).  However, for
+large models that result even from moderately sized networks the aforementioned
+approaches render the verification problem intractable.  Other
+modelling/verification techniques which have been considered over time are:
 \begin{itemize}
   \item Modelling the network as a \textbf{distributed system}, where each
     network element (i.e. computing node) has its own corresponding \emph{C
@@ -121,7 +121,7 @@ which have been considered over time are:
         complex, especially since more and more middleboxes become fundamental
         in today's networks.  One way to simplify the process of modelling it
         is to specialize the model for one particular process
-        \cite{weitz2016bagpipe, fogel2015general}, but this looses generality.
+       ~\cite{weitz2016bagpipe, fogel2015general}, but this looses generality.
     \end{enumerate}
   \item Model only the data plane of the network in such a way that processing
     logic which does not affect packet flows is ignored
@@ -134,6 +134,7 @@ which have been considered over time are:
 
 \begin{figure}[h]
   \centering
+  \captionsetup{justification=centering}
   \includegraphics[scale=0.5]{src/img/control-data}
   \caption{Data plane verification vs. control plane \emph{and} data plane
   verification.}
@@ -170,6 +171,7 @@ device: its data plane.
 
 \begin{figure}[h]
   \centering
+  \captionsetup{justification=centering}
   \includegraphics[scale=0.3]{src/img/data-plane-snapshot}
   \caption{Data plane/control plane decoupling.}
   \label{fig:data-plane-snapshot}
@@ -202,10 +204,10 @@ we simply ignore any process that leads to the current network
 \emph{configuration} and establish whether it is a correct one or not.  If it
 is, then an incremental analysis can be applied from that point forward: this
 implies analyzing only the updates that reach the data plane, a technique which
-has already been studied in the neighbouring field of software verification
-\cite{marinescu2013katch}.  If our initial verification reports failure, human
-intervention is required in order to detect the control plane problem that
-caused the unexpected rule in the data plane.
+has already been studied in the neighbouring field of software
+verification~\cite{marinescu2013katch}.  If our initial verification reports
+failure, human intervention is required in order to detect the control plane
+problem that caused the unexpected rule in the data plane.
 
 
 \subsection{Symbolic execution}\label{sub-sec:symb-exec}
@@ -263,7 +265,8 @@ the construction of the symbolic execution tree
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
   \centering
-  \includegraphics[scale=0.5]{src/img/symb-tree}
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.55]{src/img/symb-tree}
   \captionof{figure}{Symbolic execution tree for the C function in
     \labelindexref{Listing}{lst:simple-c}.}
   \label{fig:simple-tree}
@@ -305,8 +308,8 @@ small example:
     in the symbolic execution tree as the number of traversed \emph{conditional
     branches} in the program accumulate. Even though heuristic methods to
     reduce time and/or space have been devised (e.g. parallelizing independent
-    paths \cite{staats2010parallel}, merging similar paths
-    \cite{kuznetsov2012efficient}, etc), it still remains a concern.
+    paths~\cite{staats2010parallel}, merging similar paths
+   ~\cite{kuznetsov2012efficient}, etc), it still remains a concern.
 
     That being said, it is worth noting that it is not the \emph{length} of the
     analyzed program that causes path explosion, but certain types of
@@ -334,26 +337,27 @@ behind the network description language it uses (and even name it).  Thus,
 careful crafting of SEFL models can keep \emph{path explosion}
 (\labelindexref{Section}{sub-sec:symb-exec}) under control and achieve
 performances unreached before: it has been used to verify backbone routers with
-hundreds of thousands of prefixes in seconds \cite{stoenescu2016symnet}, and
-has been shown to scale linearly with the size of the analyzed network
-\cite{stoenescu2013symnet}.
+hundreds of thousands of prefixes in seconds~\cite{stoenescu2016symnet}, and
+has been shown to scale linearly with the size of the analyzed
+network~\cite{stoenescu2013symnet}.
+
+\begin{figure}[h]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.6]{src/img/symbolic-packet}
+  \caption{Visualization of a symbolic integer value and a symbolic packet.}
+  \label{fig:symbolic-packet}
+\end{figure}
 
 \paragraph{Modelling packets.}
 Packets are to SymNet how variables are to regular symbolic execution tools
-(e.g. KLEE \cite{cadar2008klee}). The main difference is that instead of a
+(e.g. KLEE~\cite{cadar2008klee}). The main difference is that instead of a
 4-bytes signed integer, for instance, a packet is a collection of
 \emph{headers}, and each header is a collection of \emph{header fields},
 similar to real implementations (\labelindexref{Figure}{fig:symbolic-packet}).
 The common symbolic execution terminology is also inherited: \emph{symbolic}
 packet, \emph{symbolic} header field, \emph{constrained} header field,
 \emph{concrete} packet, etc.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[scale=0.6]{src/img/symbolic-packet}
-  \caption{Visualization of a symbolic integer value and a symbolic packet.}
-  \label{fig:symbolic-packet}
-\end{figure}
 
 To continue the analogy, SEFL instructions are similar to usual instructions in
 a C program.  However, in SEFL, instructions implicitly operate on the header
@@ -369,6 +373,7 @@ stored in each stateful device it traverses.
 
 \begin{figure}[h]
   \centering
+  \captionsetup{justification=centering}
   \includegraphics[scale=0.6]{src/img/snat-example}
   \caption{Packet flow during connection initiation and reply while behind a
   NAT appliance.}
@@ -427,6 +432,7 @@ supported, as highlighted in \labelindexref{Table}{tab:sefl-instr} which is an
 overview of the most common SEFL instructions.
 
 \begin{table}
+  \small
   \centering
   \begin{tabular}{ | l | p{10cm} |}
     \hline
@@ -495,7 +501,8 @@ based on its routing table (\labelindexref{Figure}{fig:router-model}).
 
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.6]{src/img/router-model}
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.5]{src/img/router-model}
   \sethlcolor{mathgray}
   \caption[Modelling a simple forwarding router.]{Modelling a simple router
   that only forwards packets based on its routing table. The model is given by
@@ -691,7 +698,7 @@ grammar that summarizes this is shown in
 
 \begin{listing}
   \lstset{numbers=none, frame=single, basicstyle=\ttfamily,
-    xleftmargin=0.18\textwidth, xrightmargin=0.18\textwidth
+    xleftmargin=0.15\textwidth, xrightmargin=0.15\textwidth
   }
 \begin{lstlisting}
 rule-specification = [matches...] [target]

@@ -10,7 +10,7 @@
 
 \let\ExecuteOptions@ltx\ExecuteOptions
 \def\ExecuteOptions#1{%
- \ExecuteOptions@ltx{a4paper,10pt,oneside,onecolumn,final}%
+ \ExecuteOptions@ltx{a4paper,11pt,oneside,onecolumn,final}%
 }%
 \LoadClassWithOptions{report}
 \let\ExecuteOptions\ExecuteOptions@ltx
@@ -69,6 +69,7 @@
 %%%%%%%%%%%%%%
 % Nicer code listings
 \usepackage[ruled,vlined]{algorithm2e}
+\usepackage[font=small,labelfont=bf]{caption}
 \usepackage[shortlabels, inline]{enumitem}
 \usepackage[dvipsnames]{xcolor}
 
@@ -100,9 +101,11 @@
 \newcommand{\SNAT}{\textbf{\texttt{SNAT}}\xspace}
 \newcommand{\DNAT}{\textbf{\texttt{DNAT}}\xspace}
 
-\newcommand{\RETURN}{\textbf{\texttt{DNAT}}\xspace}
+\newcommand{\RETURN}{\textbf{\texttt{RETURN}}\xspace}
 \newcommand{\REDIRECT}{\textbf{\texttt{REDIRECT}}\xspace}
 \newcommand{\MASQUERADE}{\textbf{\texttt{MASQUERADE}}\xspace}
+
+\newcommand{\TOOL}{\textbf{\texttt{iptables-to-sefl}}\xspace}
 
 % \lstset{
 %   numbers=left, numberstyle=\footnotesize,

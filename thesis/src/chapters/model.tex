@@ -141,7 +141,7 @@ Therefore, we can improve our model by splitting each chain IVD as shown in
 Thus, we claim that we reduced the problem of modelling an iptables-enabled
 device to that of implementing (in SEFL) the traversal of a chain of rules.
 \labelindexref{Algorithm}{algo:chain-traversal} captures the naive but
-straightforward way of doing this:
+straightforward way of doing this.
 
 \begin{algorithm}[H]
   \SetKwInOut{Inputs}{inputs}
@@ -543,8 +543,8 @@ outbound traffic.
 
 
 \section{Summary}
-In this chapter we showed how to derive a model for an iptables-enabled device
-starting from a simple router.
+In this chapter we derived a model for an iptables-enabled device starting from
+a simple router.
 
 We started by building a processing stack in which each chain is modelled as a
 separate entity that encapsulates the traversal of a list of rules.  We
@@ -554,8 +554,8 @@ procedural languages.  Next, we dedicated two sections to show that the
 \emph{nat} table and \emph{connection tracking} need dedicated logic.  Once we
 solved (some of) the issues they introduced, we can finally assert that the
 resulting model is the final one.  We followed that up with a discussion about
-the its limitations.
+its limitations.
 
 In the next two chapters we present some internal design and implementation
-choices of the \texttt{iptables-to-sefl} tool, and evaluate the model we
-construct from various iptables deployments.
+choices behind the \TOOL tool, and evaluate the model we construct from various
+iptables deployments.

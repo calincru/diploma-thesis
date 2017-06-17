@@ -1,12 +1,20 @@
 \chapter{Design and implementation}
-In this chapter we delve into the design and the implementation details of
-\textbf{\texttt{iptables-to-sefl}}, the tool we built to generate SEFL models
-from iptables configurations.
+In this chapter we delve into the design and the implementation details of\\
+\TOOL, the tool we built to generate SEFL models from iptables configurations
+with the end goal of having them integrated in complex networks which can then
+be verified using SymNet.
 
-\todo{by-section overview}
+We begin with a high-level outline of the computation steps that take place
+between reading iptables rules from configuration files to returning a model as
+expected by SymNet.  Following that, we take each of those steps separately and
+discuss the most important aspects of their implementation details.  At the end
+we go into more details about a few extensions to illustrate how
+straightforward it is to add new extensions, both structurally and logically.
 
 
 \section{Design overview}
+
+
 
 
 \section{Implementation}
@@ -45,8 +53,6 @@ in certain tables, certain rules in certain tables/chains, etc}
 target extensions}
 
 
-\section{Extensions}
-\todo{is this section still needed? maybe add some examples in the previous
-sections, rather than adding another one}
+\section{Extension examples}
 \subsection{TCP and UDP}
 \subsection{MARK and CONNMARK}
