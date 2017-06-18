@@ -62,8 +62,8 @@ structure of a compiler too; it features three separate, well-defined phases:
   \label{fig:high-level-design}
 \end{figure}
 
-Feeding the resulted model into SEFL, possibly alongside models of other
-network elements, can be regarded as a fourth step and is included in
+Feeding the resulted model to SEFL, possibly alongside models of other network
+elements, can be regarded as a fourth step and is included in
 \labelindexref{Figure}{fig:high-level-design} which is a high-level overview of
 how our tool fits in the big picture of network verification using SymNet.
 Similarly, dumping the configs can be considered step zero.
@@ -88,7 +88,7 @@ hierarchy.
 \clearpage
 \begin{figure}[h]
   \centering
-  \captionsetup{justification=centering}
+  % \captionsetup{justification=centering}
 
   \includegraphics[scale=0.5]{src/img/ipt-hierarchy}
   \caption[The core class hierarchy in iptables-to-sefl.]{The core class
@@ -103,22 +103,22 @@ hierarchy.
   \includegraphics[scale=0.55]{src/img/virtdev-hierarchy}
   \caption[The class hierarchy of the model template part in
   iptables-to-sefl.]{The class hierarchy of the model template part in
-  iptables-to-sefl. Besides the abstract base class \emph{VirtualDevice},
-  there are three other classes designed for components with certain
-  expectations: \emph{RegularVirtualDevice} for self-contained components,
+  iptables-to-sefl. Besides the abstract base class \emph{VirtualDevice}, there
+  are three other classes designed for components with certain expectations:
+  \emph{RegularVirtualDevice} for self-contained ones,
   \emph{CompositeVirtualDevices} for components that might built upon some
-  other components, and \emph{IptablesVirtualDevice} for components that
-  implement \emph{"iptables"} logic: receive packets, traverse list of rules
-  and apply target, which might result in an \emph{accept} or a \emph{drop}.}
+  other ones, and \emph{IptablesVirtualDevice} for components that implement
+  \emph{"iptables"} logic: receive packets, traverse list of rules and apply
+  target, which might result in an \emph{accept} or a \emph{drop}.}
   \label{fig:virtdev-hierarchy}
 \end{figure}
 \clearpage
 
 On top of the compiler-like internal structure, \TOOL features an
 \textbf{extension-oriented design} that aims to ease as much as possible the
-implementation of new extensions. Since iptables supports over 100 official
-match and target extensions, it is unrealistic to cover all of them upfront, in
-a inextensible, monolithic design.  Even if we could, that is still not
+addition of new extensions. Since iptables supports over 100 official match and
+target extensions, it is unrealistic to cover all of them upfront, in a
+inextensible, monolithic design.  Even if we could, that is still not
 advisable, as it is error prone and hard to debug or refactor.  To add to that,
 netfilter itself is built around the idea of seamless extensibility.
 Therefore, while it does not happen to often, new, fresh extensions can be
@@ -129,25 +129,11 @@ The building blocks of this design are the interfaces \emph{Target} and
 parser that can be \textbf{injected} user-defined parsers for newly added
 targets and matches, on the other hand.  They are applied in the order given as
 part of the \emph{ParsingContext} object.  This object gets passed and updated
-during configuration parsing and is further discussed in the section dedicated
-to the parsing phase below.
+during parsing and is further discussed in the section dedicated to the parsing
+phase below.
 
 
-\section{Code structure}
-\todo{but before ... }
-\todo{(inspired by todo 1 above) Discuss what the interface with SymNet is. --
-these parts (Instruction/:==:, etc) will be added to a separate "api" package,
-to be easily accessed by other models and for better code organization.}
-
-\todo{Before delving into the next subsections, could also mention code
-structure, 3 main directories (core, extensions - one directory for each
-extension -, virtdev), the driver in the root}
-\todo{Could also mention the size of the project; 4k + 4k, "out of tree"
-(SymNet); not really "test-driven", but more like "tested" (together with
-previous!!)}
-
-
-\section{Parsing}
+\section{Parsing}\label{sec:parsing}
 * !!!! this makes me thing that I should present the AST components before the
 Parsing section.  I was afraid I won't be able to discuss anything in the
 parsing section, but there are some things: monadic parser, rule parser (with
@@ -180,6 +166,70 @@ composite approach, etc.}
 
 \todo{SeflGenOptions trait, the variant for match extensions and the one for
 target extensions}
+
+
+\section{Code structure}
+
+Now that we clarified the implementation challenges we encountered in each of
+the three phases that make up our tool and showed how we solved them, let us
+briefly present the physical structure and organization of this project.
+
+As most Scala projects, the test suites are separated from the source code: the
+former reside in \hlmath{src/test} while the latter fills the \hlmath{src/main}
+directory.  Both of these subtrees share the same structure.  Each one of them
+sums up to approximately 4k LOC (so a total of \textbf{8k LOC}), while the
+dominant paradigm used is \textbf{functional programming}, as already indicated
+in the previous sections.
+
+Even if seemingly tightly bound to SymNet, \TOOL has been developed as a
+standalone project.  In fact, even though not so obvious from SymNet's internal
+structure, we only interact with it through a \textbf{public}
+API\abbrev{API}{Application Programming Interface} that exposes the following
+components:
+\begin{itemize}
+  \item The \emph{Instruction} class hierarchy that allows us to generate SEFL
+    code.  \labelindexref{Table}{tab:sefl-instr} is a summary of the most
+    common instructions we use.
+  \item The \emph{Expression} class hierarchy that allows us to express
+    \emph{Constraints}.  It includes equality expressions, logical expressions,
+    etc.
+  \item The \emph{canonical names} module that simplifies the way we refer to
+    fields in packet headers, which is especially useful since one of the
+    features in SEFL is \emph{guaranteed memory safety}.
+  \item The \emph{execution context} module that provides a very simple and
+    intuitive interface to run symbolic execution on a given model.
+\end{itemize}
+
+\begin{listing}
+  \lstset{numbers=none, frame=single, basicstyle=\ttfamily,
+    xleftmargin=0.30\textwidth, xrightmargin=0.30\textwidth
+  }
+  \begin{lstlisting}
+core/
+extensions/
+virtdev/
+Driver.scala
+package.scala
+  \end{lstlisting}
+  \caption{Contents of the relevant source code subdirectory.}
+  \label{lst:root-directory}
+\end{listing}
+
+The root of the actual source directory is shown in
+\labelindexref{Listing}{lst:root-directory}.  The \hlmath{core/} directory
+contains the \textbf{IptElement} class hierarchy
+(\labelindexref{Figure}{fig:ipt-hierarchy}), the monadic base parsers discussed
+in \labelindexref{Section}{sec:parsing}, and the generic parsers for tables,
+chains and rules.  The \hlmath{extensions/} directory has one subdirectory for
+each extension supported.  Each one of them defines custom \emph{Target}s
+and/or \emph{Match}es alongside their corresponding parsers.  The
+\hlmath{virtdev/} directory contains the model template class hierarchy
+(\labelindexref{Figure}{fig:virtdev-hierarchy}) and all the logic discussed in
+\labelindexref{Section}{sec:codegen} for putting all chains and tables
+together.  \textbf{Driver} is a class that sequentially runs the three phases
+and outputs all explored execution paths.  It makes use of the \emph{execution
+context} exposed by SymNet.  Finally, \textbf{package.scala} is a file that
+defines various package-level utility functions and/or constants.
 
 
 \section{Extension examples}

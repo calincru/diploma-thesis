@@ -252,7 +252,7 @@ the construction of the symbolic execution tree
     assign it a symbolic value.
 
     Note that in \labelindexref{Figure}{fig:simple-tree} variable \vmax{} is
-    added to the root node due to lack of space; ideally, there should be a
+    added to the root node due to lack of space; formally, there should be a
     transition between the initial state (described above) and the state where
     it gets introduced.
 
@@ -563,8 +563,8 @@ should drive this choice.  For instance, if we want to ensure that an intranet
 is not reachable from the outside, we use purely symbolic packets to ensure
 that all possible packets are verified.  On the other hand, for more specific
 rules, such as verifying TCP reachability between two nodes, we use concrete
-values for source and destination IP addresses and leave all the rest
-unconstrained.
+values for source and destination IP addresses, as well as for protocol number,
+and leave all the rest unconstrained.
 
 As previously mentioned, SymNet outputs an exhaustive list of flows together
 with their constraints.  If the list is not a very large one, manually looking
@@ -768,3 +768,7 @@ netfilter adds three more \textbf{virtual} states to be used by iptables:
 
 Besides the connection state, it is also possible to match against any of the
 10 fields which form the two 5-tuples that are stored for every connection.
+
+
+\section{Summary}
+\todo{Fill this}
