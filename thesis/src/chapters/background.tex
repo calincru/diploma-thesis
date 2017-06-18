@@ -712,13 +712,12 @@ target = -j targetname [per-target-options]
 Rules in iptables feature an extensions-based design with separate extensions
 for matches and targets. There are over 60 match extensions and around 40
 target extensions.  Match extensions are \emph{activated} with the
-\textbf{-m/--match} flag followed by the extension name.
+\lstinline{-m/--match} flag followed by the extension name.
 \labelindexref{Appendix}{app:iptables-extensions} summarizes some of the
 extensions often used in practice.
 
 
 \subsection{Relation to \emph{conntrack}}\label{sub-sec:conntrack}
-\lstset{language=sh,basicstyle=\ttfamily}
 
 Connection tracking (also known as \emph{the state machine}) is the mechanism
 that allows a Linux box to relate incoming packets to tracked connections.
