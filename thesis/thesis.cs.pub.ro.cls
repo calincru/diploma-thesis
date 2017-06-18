@@ -105,7 +105,10 @@
 \newcommand{\REDIRECT}{\textbf{\texttt{REDIRECT}}\xspace}
 \newcommand{\MASQUERADE}{\textbf{\texttt{MASQUERADE}}\xspace}
 
-\newcommand{\TOOL}{\textbf{\texttt{iptables-to-sefl}}\xspace}
+\newcommand{\TOOL}{\emph{iptables-to-sefl}\xspace}
+
+% Replace all of the above with this one.
+\newcommand{\bftt}[1]{\textbf{\texttt{#1}}\xspace}
 
 % \lstset{
 %   numbers=left, numberstyle=\footnotesize,
