@@ -58,7 +58,7 @@ structure of a compiler too; it features three separate, well-defined phases:
   \centering
   \captionsetup{justification=centering}
   \includegraphics[scale=0.5]{src/img/high-level-design}
-  \caption{High-level design of tool iptables-to-sefl.}
+  \caption{High-level design of tool \TOOL.}
   \label{fig:high-level-design}
 \end{figure}
 
@@ -91,25 +91,26 @@ hierarchy.
   % \captionsetup{justification=centering}
 
   \includegraphics[scale=0.5]{src/img/ipt-hierarchy}
-  \caption[The core class hierarchy in iptables-to-sefl.]{The core class
-  hierarchy in iptables-to-sefl.  Interfaces \emph{Target} and \emph{Match} are
-  the ones that must be subclassed when adding extensions.  The
-  \textbf{NegatedMatch} class is a utility class to conveniently negate another
-  \emph{Match} instance.}
+  \caption[The core class hierarchy in \TOOL.]{The core class hierarchy in
+  \TOOL.  Interfaces \emph{Target} and \emph{Match} are the ones that must be
+  subclassed when adding extensions.  It is also indicated that a
+  \emph{UserChain} can be jumped to as it implements the \emph{Target}
+  interface.  The \textbf{NegatedMatch} class is a utility class to
+  conveniently negate another \emph{Match} instance.}
   \label{fig:ipt-hierarchy}
 
   \vspace*{\floatsep} % https://tex.stackexchange.com/q/26521/5764
 
   \includegraphics[scale=0.55]{src/img/virtdev-hierarchy}
-  \caption[The class hierarchy of the model template part in
-  iptables-to-sefl.]{The class hierarchy of the model template part in
-  iptables-to-sefl. Besides the abstract base class \emph{VirtualDevice}, there
-  are three other classes designed for components with certain expectations:
-  \emph{RegularVirtualDevice} for self-contained ones,
-  \emph{CompositeVirtualDevices} for components that might built upon some
-  other ones, and \emph{IptablesVirtualDevice} for components that implement
-  \emph{"iptables"} logic: receive packets, traverse list of rules and apply
-  target, which might result in an \emph{accept} or a \emph{drop}.}
+  \caption[The class hierarchy of the model template part in \TOOL.]{The class
+  hierarchy of the model template part in \TOOL. Besides the abstract base
+  class \emph{VirtualDevice}, there are three other classes designed for
+  components with certain expectations: \emph{RegularVirtualDevice} for
+  self-contained ones, \emph{CompositeVirtualDevices} for components that might
+  built upon some other ones, and \emph{IptablesVirtualDevice} for components
+  that implement \emph{"iptables"} logic: receive packets, traverse list of
+  rules and apply target, which might result in an \emph{accept} or a
+  \emph{drop}.}
   \label{fig:virtdev-hierarchy}
 \end{figure}
 \clearpage
@@ -208,8 +209,19 @@ match and target extensions that should be used when trying to parse a rule.
 By using the \emph{implicit parameters} Scala feature this allows us to inject
 various extension configurations at run time.
 
+In addition to that, there is one more subtlety when it comes to match
+extensions: the module loading part (i.e. the flags \lstinline{-m/--match}).
+One might think that providing dummy parsers to \emph{consume} this part of an
+iptables rule would suffice.  However, the real reason they are used is to
+create a sort of \emph{namespace} for match extension options.  This means that
+different extensions could use the same option and give it a completely
+different meaning.  To illustrate this, let us consider the rules from
+\labelindexref{Listing}{lst:namespace-example}.  Both of them use the
+\lstinline{--mark} match option, although the first one refers to a metadata
+field known as \emph{ctmark} (connection tacking mark) while the second one
+refers to the \emph{nfmark} field (netfilter mark).
+
 \begin{listing}
-  \lstset{basicstyle=\ttfamily}
   \lstset{numbers=none, frame=single, basicstyle=\ttfamily,
     xleftmargin=0.05\textwidth, xrightmargin=0.05\textwidth
   }
@@ -225,18 +237,6 @@ various extension configurations at run time.
   \label{lst:namespace-example}
 \end{listing}
 
-In addition to that, there is one more subtlety when it comes to match
-extensions: the module loading part (i.e. the flags \lstinline{-m/--match}).
-One might think that providing dummy parsers to \emph{consume} this part of an
-iptables rule would suffice.  However, the real reason they are used is to
-create a sort of \emph{namespace} for match extension options.  This means that
-different extensions could use the same option and give it a completely
-different meaning.  To illustrate this, let us consider the rules from
-\labelindexref{Listing}{lst:namespace-example}.  Both of them use the
-\lstinline{--mark} match option, although the first one refers to a metadata
-field known as \emph{ctmark} (connection tacking mark) while the second one
-refers to the \emph{nfmark} field (netfilter mark).
-
 How do we support this behaviour as early as parsing time?  We introduce the
 notion of \emph{extensions enabled by a match}.  Thus, to correctly parse (i.e.
 build a correct AST) for both rules, we change our rule parser to use a
@@ -249,18 +249,150 @@ The real code that accomplishes what we have just described is presented in
 \labelindexref{Listing}{lst:rule-parser}.
 
 \begin{listing}[H]
-  \caption{The implementation of the rule parser.}
+  \caption{The implementation of the rule parser.  It uses a helper,
+  tail-recursive, accumulator-based function to represent \emph{cycles}.  Each
+  recursive call might modify the \emph{ParsingContext} argument by adding new
+  match extensions as dictated by the previously parsed match.  An interesting
+  remark is that it is one of the few parsers we defined (including the ones
+  for extensions) that exceeds 15 lines of code, which is an indication of the
+  effectiveness of our parsing framework in simplifying our work.}
   \label{lst:rule-parser}
   \sourcecode{scala}{src/code/rule-parser.scala}
 \end{listing}
 
 
 \section{Validation}
-\todo{WHY it is needed; say that it is analogous to semantic analysis in
-compilers}
-\todo{use cases: unordered chains (needed), port range validity, certain chains
-in certain tables, certain rules in certain tables/chains, etc}
-\todo{how it works, validate() function, validateIf variant, ValidationContext}
+
+What is validation and why is it important?  As mentioned in the first section
+of this chapter, the validation step in \TOOL resembles semantic analysis in
+common programming language compilers: it catches errors that escaped the
+parsing phase and changes or augments the AST with information or structure
+needed during code generation.  We go through each one of the use cases that
+are derived from this motivation in the following paragraphs.
+
+\paragraph{Configuration checking.}
+The need to ensure that the rules we test against were valid was the first
+motivation for this separate computation step in \TOOL.  Not only did it help
+us to better understand the semantics of each iptables feature, but it also
+boosted our productivity by avoiding endless debugging when the root problem
+was an incorrectly written rule.
+
+One might ask, if this was the only motivation behind the \emph{validation}
+step, would it be reasonable to disable it once we made sure that our
+implementation is \emph{correct} and the rules we feed it are taken right from
+an iptables dump (which we assume is correct)?  We believe that the answer is
+still \textbf{no} because knowing for sure that your implementation is correct
+is a very hard problem (we should know that very well), and there is an
+inherent risk to introduce bugs determined by us trying to understand an
+informal specification.  Therefore, there is always a chance to find out that
+our tool reports validation error on a configuration file, which would have us
+investigate which misunderstanding of ours caused it.  That is particularly
+likely to happen as we started with very tight conditions and have
+incrementally loosen them once we found that a specific scenario \textbf{is}
+allowed and adapted our code to it.
+
+How does this step reflect in code?  The \textbf{IptElement} interface provides
+the method \hlmath{validate(context: ValidationContext): Maybe[Self]} that is
+implemented in subclasses.  For instance, to validate a user-chain as a target
+of a rule (as depicted in \labelindexref{Figure}{fig:ipt-hierarchy}) we do the
+following check: \hlmath{chain != this \&\& table.chains.contains(this)}.  It
+says that a user chain we jump to
+\begin{enumerate*}[(i)]
+  \item has to be different than the current one (\emph{recursive jumps} are
+    not allowed in iptables), and
+  \item should be part of the same table as the caller chain.
+\end{enumerate*}
+
+A non-exhaustive list of other configuration checks is the following (in no
+particular order):
+\begin{enumerate}
+  \item table name validity: only \emph{raw}, \emph{mangle}, \emph{nat},
+    \emph{filter} are recognized
+  \item built-in chains can appear only in certain tables (e.g. FORWARD in
+    \emph{mangle} and \emph{filter})
+  \item some matches and targets are only valid in certain chains and tables:
+    \begin{enumerate}[(i)]
+      \item target DNAT is only valid in table \emph{nat}, chains PREROUTING
+        and OUTPUT
+      \item target DROP is allowed only in table \emph{filter}
+      \item match \lstinline{--out-interface} can be used only in chains
+        FORWARD, OUTPUT and POSTROUTING
+    \end{enumerate}
+  \item port range validity
+  \item valid protocol in match \lstinline{--protocol} (can be a number or a
+    name)
+\end{enumerate}
+
+We end this section with an example of a scenario in which our validation rules
+were too tight, reflecting our understanding of the official specification, and
+a real-world deployment proved us wrong.  Some manual pages mention that target
+ACCEPT can only appear in the \emph{filter} table.  Despite being a trustworthy
+source, it turned out that it can be used in any other table for
+\textbf{short-circuiting} the remaining traversal of that chain.  This is one
+of the desirable situations in which all we had to do was to drop one check and
+still have everything work correctly.  In other scenarios, code refactoring was
+needed.
+
+\paragraph{Forward references to user chains.}
+Another problem that came out early in the development process was that a user
+chain might appear as part of the input configuration file \textbf{after} a
+rule that jumps to it, from a previous chain.  The problem is that both a list
+of \emph{Match}es and a \emph{Target} are required in order to construct an
+instance of class \emph{Rule}, but at that point in the parsing process, a
+reference to the \emph{yet to be parsed} chain cannot be obtained.
+
+The way we solved it was by creating a dummy implementation of trait
+\emph{Target}, called \textbf{PlaceholderTarget}, that points to a user chain
+through its name only.  Thus, later, in the \emph{validation} step, we make
+sure to check that the pointed-to chain does exist and replace the placeholder
+with a reference to it.
+
+This task is performed by other compilers too, especially for programming
+languages that do not impose preceding declarations for referenced names.
+
+\paragraph{Interface name wildcards.}
+Lastly, a less well known feature of iptables is that a string followed by a
+plus can be used to match all interfaces that are prefixed by that string, as
+part of the \textbf{\lstinline{--in-interface}} and
+\textbf{\lstinline{--out-interface}} matches.  For instance, the rule
+\lstinline{--out-interface eth+ -j ACCEPT} can be used to accept all traffic
+that exits on Ethernet interfaces.
+
+Modelling string operations in an efficient manner for symbolic execution is an
+open problem.  However, we can avoid doing that by statically determining the
+interfaces that start with the specified string, and modify and repeat that
+rule for each one of them.  For the previous rule, if our device had
+interfaces \emph{eth0}, \emph{eth1} and \emph{eth2}, among others, the chain of
+rules would become:
+
+\begin{listing}
+  \lstset{numbers=none, frame=single, basicstyle=\ttfamily,
+    xleftmargin=0.25\textwidth, xrightmargin=0.25\textwidth
+  }
+  \small
+  \begin{lstlisting}
+<MY_CHAIN>
+  [preceding rules]
+  --out-interface eth0 -j ACCEPT
+  --out-interface eth1 -j ACCEPT
+  --out-interface eth2 -j ACCEPT
+  [succeeding rules]
+  \end{lstlisting}
+\end{listing}
+
+Implementation-wise, we handle this similarly to how we handled match extension
+loading to avoid name clashes between different options: we add a method to
+class \emph{Rule}, \hlmath{mutate(interfaces: List[String]): List[Rule]}, that
+receives a list of interface names and returns a list of generated rules.  It
+is called for all rules during chain validation.
+
+A rule that does not contain any interface match will return a list containing
+just itself.  One that does will return a list as shown in the previous
+example.  An interesting thing to note is that it might also return an empty
+list, which means that no interface matched.  This can be seen as an
+optimization.  However, we would probably be much better off check-failing on
+this condition and let the network administrator know that his deployment
+contains a redundant rule, which is probably not intended.
 
 
 \section{Code generation}\label{sec:codegen}
@@ -339,8 +471,3 @@ together.  \textbf{Driver} is a class that sequentially runs the three phases
 and outputs all explored execution paths.  It makes use of the \emph{execution
 context} exposed by SymNet.  Finally, \textbf{package.scala} is a file that
 defines various package-level utility functions and/or constants.
-
-
-\section{Extension examples}
-\subsection{TCP and UDP}
-\subsection{MARK and CONNMARK}
