@@ -1,6 +1,6 @@
 \chapter{Background}\label{chapter:background}
 
-This chapter introduces the concepts which form the building blocks for our
+This chapter introduces the concepts which form the building blocks of our
 iptables model, making use of the extensive work conducted by Stoenescu et
 al.~\cite{stoenescu2013symnet, stoenescu2016symnet}
 
@@ -39,8 +39,8 @@ What is a (policy) rule and how is it specified?
 \end{quote}
 
 In fact, there is ongoing work that focuses on bringing policy specification
-closer to the natural language, on one hand, and the automation of policy
-proving, on the other hand.  The latter, called \textbf{policy-driven network
+closer to the natural language and using the resulting format to automate
+policy proving.  This novel technique, called \textbf{policy-driven network
 verification}, could significantly reduce verification run-times, similar to
 the way \emph{informed search} algorithms compare to the uninformed ones on
 large search spaces.  Another analogy stems from the field of automatic theorem
@@ -770,4 +770,22 @@ Besides the connection state, it is also possible to match against any of the
 
 
 \section{Summary}
-\todo{Fill this}
+
+We started this chapter by introducing the theoretical concept of \emph{network
+verification} together with the most explored techniques to achieve it.  Once
+we argued why static verification based on models built from network data
+planes is the most promising approach, we switched our attention to symbolic
+execution as a concrete verification procedure.
+
+In the next section, we introduced SymNet and SEFL: the former is an
+implementation of the previously discussed symbolic execution approach, while
+the latter is a modelling language tailored for network processing.  We showed
+how models are built using SEFL and how the output of SymNet can be
+interpreted.
+
+Finally, in the last section of this chapter we gave a detailed presentation of
+iptables, its internal organization as well as its relation with connection
+tracking.
+
+In the next chapter we will make use of all the concepts accumulated so far to
+build a model of an iptables-enabled device.

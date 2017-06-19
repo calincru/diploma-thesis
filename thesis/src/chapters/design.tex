@@ -7,9 +7,7 @@ verified using SymNet.
 We begin with a high-level outline of the computation steps that take place
 between dumping iptables configurations to returning a model as expected by
 SymNet.  Following that, we take each of those steps separately and discuss the
-most important aspects of their implementation details.  At the end we go into
-more details about a few extensions to illustrate how straightforward it is to
-add new ones, both structurally and logically.
+most important aspects of their implementation details.
 
 
 \section{Design overview}
@@ -238,7 +236,7 @@ refers to the \emph{nfmark} field (netfilter mark).
 \end{listing}
 
 How do we support this behaviour as early as parsing time?  We introduce the
-notion of \emph{extensions enabled by a match}.  Thus, to correctly parse (i.e.
+notion of \emph{match-enabled extensions}.  Thus, to correctly parse (i.e.
 build a correct AST) for both rules, we change our rule parser to use a
 \emph{cycle-based parsing} approach: we start with two extensions that
 recognize options \lstinline{-m connmark} and \lstinline{-m mark}, and leverage
@@ -353,10 +351,9 @@ languages that do not impose preceding declarations for referenced names.
 \paragraph{Interface name wildcards.}
 Lastly, a less well known feature of iptables is that a string followed by a
 plus can be used to match all interfaces that are prefixed by that string, as
-part of the \textbf{\lstinline{--in-interface}} and
-\textbf{\lstinline{--out-interface}} matches.  For instance, the rule
-\lstinline{--out-interface eth+ -j ACCEPT} can be used to accept all traffic
-that exits on Ethernet interfaces.
+part of the \lstinline{--in-interface} and {\lstinline{--out-interface}
+matches.  For instance, the rule \lstinline{--out-interface eth+ -j ACCEPT} can
+be used to accept all traffic that exits an Ethernet interface.
 
 Modelling string operations in an efficient manner for symbolic execution is an
 open problem.  However, we can avoid doing that by statically determining the
@@ -491,3 +488,7 @@ together.  \textbf{Driver} is a class that sequentially runs the three phases
 and outputs all explored execution paths.  It makes use of the \emph{execution
 context} exposed by SymNet.  Finally, \textbf{package.scala} is a file that
 defines various package-level utility functions and/or constants.
+
+
+\section{Summary}
+\todo{Fill this.}

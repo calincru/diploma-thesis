@@ -118,7 +118,7 @@
 % }
 
 % Added by me: to make \lstinline simpler.
-\lstset{language=sh,basicstyle=\ttfamily}
+\lstset{language=sh,basicstyle=\ttfamily,keywordstyle=\ttfamily}
 
 % notations and abbreviations
 % http://www-h.eng.cam.ac.uk/help/tpl/textprocessing/nomencl.pdf
