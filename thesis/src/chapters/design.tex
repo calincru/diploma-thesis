@@ -396,17 +396,37 @@ contains a redundant rule, which is probably not intended.
 
 
 \section{Code generation}\label{sec:codegen}
-Things to say:
-* how components featured in Figures X Y are organized at a high-level but more
-implementation-focused (i.e. hierarchy of classes).  Also mention the composite
-pattern and that it helps make sure that no internal device is skipped when
-adding the links and SEFL instructions to the two Maps that have to result.
-\todo{(kind of the same thing as above) add implementation-detailed diagrams of
-the 'iptelement' hierarchy as well as of the 'virtualdevice' hierarchy; mention
-composite approach, etc.}
+\todo{by code generation we mainly refer to generating code for a rule, which
+means generating code for all its matches and for its target. however, in this
+section we will also go into some details about the virtual device hierarchy
+featured in figure X}
 
-\todo{SeflGenOptions trait, the variant for match extensions and the one for
+\todo{then start with the usual code generation: the methods for returning the
+code, etc}
+\todo{SeflGenOptions trait, the method for match extensions and the one for
 target extensions}
+
+\todo{tricky stuff: mention that in one of the first versions of \TOOL, the
+logic for chain traversal was as simple as mentioned in a previous section; in
+Scala, it was translated to two foldr operations: one to iterate through rules
+from top to bottm and the other to iterate through matches of a rule. However,
+along the way certain tricky things came out: rule that need "initialization",
+rules that do not end the traversal of that chain}
+
+\todo{then some details about this virtdev implementation}
+\todo{maybe mention that classes with more involved construction have an
+associated builder class, such as in a builder design pattern, but we don't
+make use of the polymorphism it features}
+\todo{maybe mention the class IPTIndex; say that as we've seen in ipt
+hierarchy, their internal organization reflects the AST one. However, this is
+not a friendly organization when it comes to fast queries: for instance, a
+chain does not hold a reference to the table it is contained in; it is partly
+because this need was later found and also because we wanted to keep ipt
+hierarchy immutable.  So we made this class that receives the list of tables
+parsed and verified (basically our resulted AST) and indexes it for various
+queries}
+\todo{mention the bug we had with non-unique names, where we forgot to include
+the table of a chain in its name; so hard to debug}
 
 
 \section{Code structure}
