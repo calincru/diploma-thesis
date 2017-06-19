@@ -1,14 +1,21 @@
 \chapter{iptables match/target extensions}
 \label{app:iptables-extensions}
 
-\lstset{language=sh,basicstyle=\ttfamily}
+\lstset{
+  language=sh,
+  basicstyle=\ttfamily,
+  keywordstyle=\ttfamily,
+  breaklines=true,
+  breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space}
+}
 
 %%%%%%%%%%%%%%%%%%%
 %% MATCH EXTENSIONS
 %%%%%%%%%%%%%%%%%%%
 \begin{table}[htbp]
-  \footnotesize
-  \begin{tabularx}{\textwidth}{ |X|X| }
+  \tiny
+  \begin{tabularx}{\textwidth}[t]{ |p{4cm}|X| }
     \hline
     \multicolumn{2}{ |c| }{\normalsize{Match extensions}}
     \\ \hline
@@ -18,19 +25,143 @@
     Administrator-friendly way of commenting rules.
     \\ \hline
 
+    % Mark
+    \lstinline{[!] --mark value[/mask]} &
+    Matches the netfilter mark field associated with a packet (which can be set
+    using the \emph{MARK} target below).  If a mask is specified, it is ANDed
+    with the mark value before the comparison.
+    \\ \hline
+
+    % Connmark
+    \lstinline{[!] --mark value[/mask]} &
+    Matches the netfilter mark field associated with a connection (which can
+    then be set using the \emph{CONNMARK} target below).  If a mask is
+    specified, it is ANDed with the mark value before the comparison.
+    \\ \hline
+
+    % Conntrack
+    \lstinline{[!] --ctstate statelist}
+    \newline \lstinline{[!] --ctproto l4proto}
+    \newline \lstinline{[!] --ctorigsrc address[/mask]}
+    \newline \lstinline{[!] --ctorigdst address[/mask]}
+    \newline \lstinline{[!] --ctreplsrc address[/mask]}
+    \newline \lstinline{[!] --ctrepldst address[/mask]} &
+    This module, when combined with connection tracking, allows access to the
+    connection tracking state for this packet/connection.  The first option
+    matches a comma-separated list of connection states.  The second one
+    matches the layer-4 protocol.  The next four match against original/reply
+    source/destination address.
+    \\ \hline
+
+    % Tcp
+    \lstinline{[!] --source-port,--sport port[:port]}
+    \newline \lstinline{[!] --destination-port,--dport port[:port]}
+    \newline \lstinline{[!] --tcp-flags mask comp}
+    \newline \lstinline{[!] --syn}
+    \newline \lstinline{[!] --tcp-option number} &
+    These extensions can be used if \lstinline{--protocol/-p tcp} is specified,
+    besides the usual \lstinline{-m/--match tcp}.
+    \newline The first option matches the given source port number or port
+    range.
+    \newline The second option matches the given destination port number or
+    port range.
+    \newline The third option matches when the TCP flags are as specified.  The
+    first argument, \emph{mask} is the flags which we should examine, given as
+    a comma-separated list.  The second argument, \emph{comp}, is a
+    comma-separated list of flags which must be set.  Flags are \textbf{SYN ACK
+    FIN RST URG PSH ALL NONE}.
+    \newline The fourth option matches TCP packets with the SYN bit set and the
+    ACK, RST and FIN bits cleared. Such packets are used to request TCP
+    connection initiation.
+    \newline The fifth option matches if the specified TCP option is set.
+    \\ \hline
+
+    % Udp
+    \lstinline{[!] --source-port,--sport port[:port]}
+    \newline \lstinline{[!] --destination-port,--dport port[:port]} &
+    These extensions can be used if \lstinline{--protocol/-p udp} is specified,
+    besides the usual \lstinline{-m/--match udp}.
+    \newline The first option matches the given source port number or port
+    range.
+    \newline The second option matches the given destination port number or
+    port range.
+    \\ \hline
+
   \end{tabularx}
   \caption{Common iptables match extensions.}
+\end{table}
 
-  \bigskip
-
-  \begin{tabularx}{\textwidth}{ |X|X| }
+\begin{table}[htbp]
+  \tiny
+  \begin{tabularx}{\textwidth}[t]{ |X|X| }
     \hline
     \multicolumn{2}{ |c| }{\normalsize{Target extensions}}
     \\ \hline
 
+    % CT
+    \lstinline{-j CT --notrack} &
+    Allows to set parameters for a packet or its associated connection.  The
+    option \lstinline{--notrack} disables connection tracking for this packet.
+    \lstinline{-j NOTRACK} is an alias.
+    \newline This target is only valid in table \emph{raw}.
+    \\ \hline
+
+    % MARK
+    \lstinline{-j MARK --set-xmark value[/mask]} &
+    It is used to set the Netfilter mark value (32 bits wide) associated with
+    the packet.  Option \lstinline{--set-xmark} zeros out the bits given by
+    \emph{mask} and XORs \emph{value} into the packet mark (nfmark).
+    \newline This target is generally used in table \emph{mangle}, in the
+    PREROUTING.
+    \\ \hline
+
+    % CONNMARK
+    \lstinline{-j CONNMARK --set-xmark value[/mask]}
+    \newline \lstinline{-j CONNMARK --save-mark [--nfmask m1] [--ctmask m2]}
+    \newline \lstinline{-j CONNMARK --restore-mark [--nfmask m1] [--ctmask m2]} &
+    This module sets the netfilter mark value (32 bits wide) associated with a
+    connection.  The first option zeros out the bits given by mask and XORs
+    value into ctmark.  The second one copies the packet mark (nfmark) to the
+    connection mark (ctmark) using the given mask.  The third one is the
+    opposite of the second one.
+    \\ \hline
+
     % SNAT
     \lstinline{-j SNAT --to-source ip[-ip][:port[-port]]} &
-    Source NAT.
+    Specifies that the source address of the packet should be modified, as well
+    as all future packets in this connection.  A single new source IP address
+    can be specified, or an inclusive range.  The same applies for the port
+    number.  Where possible, no port alteration will occur.
+    \newline This target is only valid in table \emph{nat}, in the
+    POSTROUTING and INPUT chains.
+    \\ \hline
+
+    % DNAT
+    \lstinline{-j DNAT --to-destination ip[-ip][:port[-port]]} &
+    It is analogous to \emph{SNAT} but for destination IP and port addresses.
+    Also, if the port range is not specified, then the destination port will
+    never be modified.
+    \newline This target is only valid in table \emph{nat}, in the
+    PREROUTING and OUTPUT chains.
+    \\ \hline
+
+    % MASQUERADE
+    \lstinline{-j MASQUERADE --to-ports port[-port]} &
+    Masquerading is equivalent to specifying a SNAT mapping to the IP address
+    of the interface the packet is going out, but also has the effect that
+    connections are forgotten when the interface goes down.
+    \newline This target is only valid in table \emph{nat}, in the POSTROUTING
+    chain.
+    \\ \hline
+
+    % REDIRECT
+    \lstinline{-j REDIRECT --to-ports [port[-port]]} &
+    It redirects the packet to the machine itself by changing the destination
+    IP to the primary address of the incoming interface.  Option
+    \lstinline{--to-ports} specifies a destination port or range of ports to
+    use.  Without it, the destination port is never altered.
+    \newline This target is only valid in table \emph{nat}, in the
+    PREROUTING and OUTPUT chains.
     \\ \hline
 
   \end{tabularx}

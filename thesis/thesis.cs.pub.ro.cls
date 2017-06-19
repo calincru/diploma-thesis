@@ -74,10 +74,10 @@
 \usepackage[dvipsnames]{xcolor}
 
 \usepackage{amsfonts}
-\usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{boldline}
 \usepackage{color}
+\usepackage{lmodern}  % for bold teletype font
 \usepackage{minted}
 \usepackage{parcolumns}
 \usepackage{soul}
