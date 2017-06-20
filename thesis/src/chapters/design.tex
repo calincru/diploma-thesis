@@ -78,10 +78,8 @@ In addition to the AST types that are used throughout all three computation
 phases of our tool, it is worth introducing the class hierarchy behind our
 model template too.  It is designed to clearly separate each component (i.e.
 \emph{virtual device}) that we identified in the previous chapter and to make
-their interconnection as smooth as possible. They are described in more detail
-in \labelindexref{Section}{sec:codegen}, but the important thing to notice is
-that it \emph{inherits} the composite pattern approach from our core AST
-hierarchy.
+their interconnection as smooth as possible. It also inherits the composite
+pattern approach from our core AST hierarchy.
 
 \clearpage
 \begin{figure}[h]
@@ -120,7 +118,7 @@ target extensions, it is unrealistic to cover all of them upfront, in a
 inextensible, monolithic design.  Even if we could, that is still not
 advisable, as it is error prone and hard to debug or refactor.  To add to that,
 netfilter itself is built around the idea of seamless extensibility.
-Therefore, while it does not happen to often, new, fresh extensions can be
+Therefore, while it does not happen too often, new, fresh extensions can be
 added anytime.
 
 The building blocks of this design are the interfaces \emph{Target} and
@@ -157,16 +155,16 @@ trying to achieve.
 
 \labelindexref{Listing}{lst:combinators} shows some of the basic combinators
 that enable us to express increasingly complex parsers.  \emph{many} and
-\emph{some} are analogous to the unary operators Kleene star and its extension,
-Kleene plus, respectively: they take a parser that can parse a type \textbf{T}
-and repeatedly apply it, each time consuming some portion of the input.  In the
-end, they return a list of \textbf{T}s parsed.  The \emph{optional} combinator
-tries to parse a type \textbf{T} and returns \hlmath{Some[T]} if it succeeds or
-\hlmath{None}, otherwise.  Note that the \hlmath{for/yield} syntax is a
-syntactic sugar for monadic computation which propagates error implicitly,
-without obfuscating the code we write.  Also, the \hlmath{$>>=$} operator is
-called \textbf{bind} and is one of the defining functions behind monads.  It
-takes the input altered by a parser and feeds it to the next one.
+\emph{some} are analogous to the unary operators Kleene star and Kleene plus
+(its extension), respectively: they take a parser that can parse a type
+\textbf{T} and repeatedly apply it, each time consuming some portion of the
+input.  In the end, they return a list of \textbf{T}s parsed.  The
+\emph{optional} combinator tries to parse a type \textbf{T} and returns
+\hlmath{Some[T]} if it succeeds or \hlmath{None}, otherwise.  Note that the
+\hlmath{for/yield} syntax is a syntactic sugar for monadic computation which
+propagates error implicitly, without obfuscating the code we write.  It
+de-sugars into repeated applications of the \hlmath{$>>=$} operator (called
+\textbf{bind}) which is one of the defining functions behind monads.
 
 \begin{listing}[H]
   \caption{Some of the base combinators we use to build parsers.}
@@ -189,13 +187,15 @@ grammar is shown in \labelindexref{Listing}{lst:our-grammar} below.
     xleftmargin=0.15\textwidth, xrightmargin=0.15\textwidth
   }
   \begin{lstlisting}
-table = <<table_name>> [chains...]
-chain = <chain_name> [rules...]
-rule = [matches...] [target]
-match = -m match_name [per-match-options]
+table  = <<table_name>> [chains...]
+chain  = <chain_name[:policy]> [rules...]
+rule   = [matches...] [target]
+match  = -m match_name [per-match-options]
 target = -j target_name [per-target-options]
   \end{lstlisting}
-  \caption{The complete grammar of an iptables configuration file.}
+  \caption{The complete grammar of an iptables configuration file.  The policy
+  of a chain is specified only for built-in chains.  For user chains it is
+  always \RETURN.}
   \label{lst:our-grammar}
 \end{listing}
 
@@ -279,15 +279,19 @@ One might ask, if this was the only motivation behind the \emph{validation}
 step, would it be reasonable to disable it once we made sure that our
 implementation is \emph{correct} and the rules we feed it are taken right from
 an iptables dump (which we assume is correct)?  We believe that the answer is
-still \textbf{no} because knowing for sure that your implementation is correct
-is a very hard problem (we should know that very well), and there is an
-inherent risk to introduce bugs determined by us trying to understand an
-informal specification.  Therefore, there is always a chance to find out that
-our tool reports validation error on a configuration file, which would have us
-investigate which misunderstanding of ours caused it.  That is particularly
-likely to happen as we started with very tight conditions and have
-incrementally loosen them once we found that a specific scenario \textbf{is}
-allowed and adapted our code to it.
+still \textbf{no} because
+\begin{enumerate*}[(i)]
+  \item knowing for sure that your implementation is correct is a very hard
+    problem (we should know that very well), and
+  \item there is an inherent risk to introduce bugs determined by us trying to
+    understand an informal specification.
+\end{enumerate*}
+Therefore, there is always a chance to find that our tool reports validation
+error on a configuration file, which would have us investigate which
+misunderstanding of ours caused it.  That is particularly likely to happen as
+we started with very tight conditions and have incrementally loosen them once
+we found that a specific scenario \textbf{is} allowed and adapted our code to
+it.
 
 How does this step reflect in code?  The \textbf{IptElement} interface provides
 the method \hlmath{validate(context: ValidationContext): Maybe[Self]} that is
@@ -301,8 +305,7 @@ says that a user chain we jump to
   \item should be part of the same table as the caller chain.
 \end{enumerate*}
 
-A non-exhaustive list of other configuration checks is the following (in no
-particular order):
+Other common configuration checks are (in no particular order):
 \begin{enumerate}
   \item table name validity: only \emph{raw}, \emph{mangle}, \emph{nat},
     \emph{filter} are recognized
@@ -322,14 +325,14 @@ particular order):
 \end{enumerate}
 
 We end this section with an example of a scenario in which our validation rules
-were too tight, reflecting our understanding of the official specification, and
-a real-world deployment proved us wrong.  Some manual pages mention that target
-ACCEPT can only appear in the \emph{filter} table.  Despite being a trustworthy
-source, it turned out that it can be used in any other table for
-\textbf{short-circuiting} the remaining traversal of that chain.  This is one
-of the desirable situations in which all we had to do was to drop one check and
-still have everything work correctly.  In other scenarios, code refactoring was
-needed.
+were too tight, reflecting our understanding of the official specification at
+that moment, and a real-world deployment proved us wrong.  Some manual pages
+mention that target ACCEPT can appear only in the \emph{filter} table.  Despite
+being a trustworthy source, it turned out that it can be used in any other
+table for \textbf{short-circuiting} the remaining traversal of that chain.
+This is one of the desirable situations in which all we had to do was to drop
+one check and still have everything work correctly.  In other scenarios, code
+refactoring was needed.
 
 \paragraph{Forward references to user chains.}
 Another problem that came out early in the development process was that a user
@@ -346,7 +349,8 @@ sure to check that the pointed-to chain does exist and replace the placeholder
 with a reference to it.
 
 This task is performed by other compilers too, especially for programming
-languages that do not impose preceding declarations for referenced names.
+languages that do not impose preceding declarations at lexical scope for
+referenced names.
 
 \paragraph{Interface name wildcards.}
 Lastly, a less well known feature of iptables is that a string followed by a
@@ -386,44 +390,178 @@ is called for all rules during chain validation.
 A rule that does not contain any interface match will return a list containing
 just itself.  One that does will return a list as shown in the previous
 example.  An interesting thing to note is that it might also return an empty
-list, which means that no interface matched.  This can be seen as an
+list which means that no interface matched.  This can be seen as an
 optimization.  However, we would probably be much better off check-failing on
 this condition and let the network administrator know that his deployment
 contains a redundant rule, which is probably not intended.
 
 
 \section{Code generation}\label{sec:codegen}
-\todo{by code generation we mainly refer to generating code for a rule, which
-means generating code for all its matches and for its target. however, in this
-section we will also go into some details about the virtual device hierarchy
-featured in figure X}
 
-\todo{then start with the usual code generation: the methods for returning the
-code, etc}
-\todo{SeflGenOptions trait, the method for match extensions and the one for
-target extensions}
+Code generation in \TOOL refers mainly to retrieving the SEFL instructions that
+model rule matches and targets.  In essence, rules are the input to our tool.
 
-\todo{tricky stuff: mention that in one of the first versions of \TOOL, the
-logic for chain traversal was as simple as mentioned in a previous section; in
-Scala, it was translated to two foldr operations: one to iterate through rules
-from top to bottm and the other to iterate through matches of a rule. However,
-along the way certain tricky things came out: rule that need "initialization",
-rules that do not end the traversal of that chain}
+However, similarly to how a compiler in its backend component might insert
+architecture specific instructions to ensure program correctness (e.g. memory
+barriers), we also need to link together rule specific code to form chains,
+followed by linking chains from multiple tables to form a whole step in the
+iptables processing stack.  This is repeated until we get the model for the
+entire iptables-enabled device, following the principles thoroughly explained
+in \labelindexref{Chapter}{chapter:model}.
 
-\todo{then some details about this virtdev implementation}
-\todo{maybe mention that classes with more involved construction have an
-associated builder class, such as in a builder design pattern, but we don't
-make use of the polymorphism it features}
-\todo{maybe mention the class IPTIndex; say that as we've seen in ipt
-hierarchy, their internal organization reflects the AST one. However, this is
-not a friendly organization when it comes to fast queries: for instance, a
-chain does not hold a reference to the table it is contained in; it is partly
-because this need was later found and also because we wanted to keep ipt
-hierarchy immutable.  So we made this class that receives the list of tables
-parsed and verified (basically our resulted AST) and indexes it for various
-queries}
-\todo{mention the bug we had with non-unique names, where we forgot to include
-the table of a chain in its name; so hard to debug}
+We cover both aspects in this section.
+
+\paragraph{Match/target codegen.}  The extension-based design allows decoupling
+extensions  from the core of \TOOL.  Following the same approach as for
+validation, we augment the code with two methods:
+\begin{itemize}
+  \item \hlmath{seflCode(options: CodegenContext): Instruction} in trait
+    \emph{Target}, and
+  \item \hlmath{seflCode(options: CodegenContext): SeflCondition} in trait
+    \emph{Match}.
+\end{itemize}
+
+Both of them receive an object of type \emph{CodegenContext} which aggregates
+both context related information, such as port ids for accepting, dropping,
+returning packets (e.g. used as \emph{Forward(port)}), and constant data
+structures such as a Map from interface names to their internal identifiers.
+
+That being said, their return types differ. A target may return any instruction
+type, and usually it really aggregates multiple ones in a single
+\emph{InstructionBlock}, when complex logic is expressed (e.g. SNAT, MARK). On
+the other hand, a match returns a custom class, \emph{SeflCondition}.  In most
+cases it contains a single \emph{Constrain} instruction, but there are some
+matches that express a conjunction of \emph{Constraint}s.  The best example is
+the \lstinline{--tcp-flags} match which needs to ensure that certain flags are
+set while others are cleared.
+
+\paragraph{Assembling the rules.}
+Both the arbitrary \emph{Instruction} and the \emph{SeflCondition} objects that
+model a rule need to be assembled into a larger SEFL program that captures the
+traversal of a chain of rules.
+
+Due to the complex semantics of certain targets (see below), we decided to use
+the simple algorithm discussed in \labelindexref{Chapter}{chapter:model},
+trading off efficiency for correctness.  In our code, it is implemented as part
+of the \emph{ContiguousIVD} class which contains a sequence of rules of which
+only the last one might jump to a user chain.  Scala's functional APIs make
+this as easy to implement as specifying two \textbf{reduce} (also known as
+\emph{fold}) operations:
+\begin{itemize}
+  \item The first one operates on the list of rules and generates a sequence of
+    \hltexttt{if/then/else} instructions.  For each rule, the condition is a
+    conjunction of all SEFL instructions generated out of its matches.  The
+    \emph{then} part is simply the instruction given by target, while
+    \emph{else} contains the recursive application on the remaining rules, as
+    shown in \labelindexref{Listing}{algo:if-then-else}.
+
+  \item The second one is used to generate the conjunction mentioned above.
+    This time, it is an \textbf{imbricated} sequence of \hltexttt{if/then/else}
+    instructions with a depth given by the accumulated \emph{SeflCondition}s
+    (\labelindexref{Listing}{algo:if-then-else2}).
+
+    Note that this explains why we do not return an arbitrary
+    \emph{Instruction} in the code generation function that is part of the
+    \emph{Match} trait: only a \emph{Constrain} can be used as a condition in
+    an \emph{If} instruction in SEFL.
+\end{itemize}
+
+\begin{minipage}[t]{.45\textwidth}
+  \begin{listing}[H]
+    \lstset{numbers=none, frame=single}
+    \begin{lstlisting}
+  if (condition1)
+    target1
+  else if (condition2)
+    target2
+  else if (condition3)
+    target3
+  ...
+  else
+    targetN
+    \end{lstlisting}
+
+    \caption{Pseudocode for traversing a chain of rules, as implemented in
+    SEFL.}
+    \label{algo:if-then-else}
+  \end{listing}
+\end{minipage}\hfill
+\begin{minipage}[t]{.45\textwidth}
+  \begin{listing}[H]
+    \lstset{numbers=none, frame=single}
+    \begin{lstlisting}
+  if (match1)
+    if (match2)
+      ...
+      if (matchN)
+        target
+    else
+      nextRule
+  else
+    nextRule
+    \end{lstlisting}
+
+    \caption{Pseudocode for expressing a conjunction, as implemented in SEFL.}
+    \label{algo:if-then-else2}
+  \end{listing}
+\end{minipage}
+
+This algorithm is made a lot more complex by the following iptables features:
+\begin{itemize}
+  \item \textbf{Negating} the \lstinline{--tcp-flags} option yields a
+    disjunction which needs to be integrated with the rest of the matches
+    that are part of a rule.
+  \item Some matches need to compute a \textbf{temporary value} to be used in
+    \emph{Constrain} instructions. This is due to SEFL providing very tight
+    semantics for the \emph{If} instruction.  An example of such a match is
+    \lstinline{--mark} \emph{value[/mask]} that first need to do a bitwise AND
+    between the \emph{mark} field and the specified \emph{mask}
+    before comparing it with \emph{value}.
+  \item Some targets do not imply \textbf{stopping traversing} the rest of the
+    chain.  An example of \texttt{MARK} being used precisely in this way to
+    filter out any traffic other than the one identified as management in a
+    Demilitarized Zone (DMZ)\abbrev{DMZ}{Demilitarized Zone} is presented in
+    \labelindexref{Listing}{lst:using-mark}.
+
+    In chain FORWARD packets are redirected to the user chain R-ALLOW-DMZ-MGMT
+    for better modularity and readability.  In this chain, it first zeros out
+    the current \emph{nfmark} value and then it sequentially jumps to three
+    other user chains.  Each one of them contains rules to match specific
+    traffic and mark it with a unique value.  If at the end of this processing
+    the mark value is 0xE, it accepts the packet.  Otherwise, it is dropped, as
+    specified in the chain policy.
+\end{itemize}
+
+\begin{listing}
+  \lstset{numbers=none, frame=single, basicstyle=\ttfamily,
+    xleftmargin=0.25\textwidth, xrightmargin=0.25\textwidth
+  }
+  \small
+  \begin{lstlisting}
+<<mangle>>
+  <FORWARD:DROP>
+    -j R-ALLOW-DMZ-MGMT
+  <R-ALLOW-DMZ-MGMT>
+    -j MARK --set-xmark 0x0/0x0
+    -j S-TRUSTED
+    -j D-DMZ
+    -j D-SRV-MGMT
+    -m mark --mark 0xE -j ACCEPT
+  <S-TRUSTED>
+    [other rules]
+  <D-DMZ>
+    [other rules]
+  <D-SRV-MGMT>
+    [other rules]
+  \end{lstlisting}
+  \caption{An example of a \emph{mangle} table that relies on \texttt{MARK}
+  target not short-circuiting the traversal of the chain.}
+  \label{lst:using-mark}
+\end{listing}
+
+In summary, even though they introduced drastically different behaviour
+compared to our early versions of \TOOL, we managed to nicely integrate them
+with the existing algorithm.
 
 
 \section{Code structure}
