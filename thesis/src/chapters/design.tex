@@ -629,4 +629,22 @@ defines various package-level utility functions and/or constants.
 
 
 \section{Summary}
-\todo{Fill this.}
+A high-level design overview of \TOOL followed by detailed discussions about
+each one of its processing phases were covered in this chapter.
+
+In the first part we argued that \TOOL features most traits of a compiler and
+briefly described each one of its three computation steps: parsing iptables
+rules, validating them and generating SEFL code.  We also presented the main
+class hierarchies that are part of its core: the \textbf{IptElement} one, which
+defines nodes in the AST that results after first step, and the one with
+abstract class \textbf{VirtualDevice} at its root, for modelling packet
+processing components.
+
+In the second part we took a more detailed approach at discussing the
+challenges we faced in each one of the three steps that \TOOL splits its
+execution in.  We started with the monadic combinators we define to build fast
+and easily customizable parsers.  We followed that up with three main problems
+that are not caught during parsing, but are dealt with in the second pass
+through the AST, in the validation phase.  Finally, we presented the building
+blocks for code generation and brought into discussion the unusual behaviour
+featured by some extensions.
