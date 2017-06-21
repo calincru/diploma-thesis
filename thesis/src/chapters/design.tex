@@ -72,7 +72,7 @@ It is a proper use of the composite design pattern in which multiple classes
 are both \emph{components} and \emph{composites} at the same time (e.g.
 \emph{Chain}, \emph{Rule}, \emph{NegatedMatch}).  ASTs follow the aggregation
 relationships.  As with code generation, the only (concrete) types that can
-change are the leaves: the matches and the targets that make up the rules.
+change are the leaves: the matches and the targets.
 
 In addition to the AST types that are used throughout all three computation
 phases of our tool, it is worth introducing the class hierarchy behind our
@@ -567,7 +567,7 @@ with the existing algorithm.
 \section{Code structure}
 
 Now that we clarified the implementation challenges we encountered in each of
-the three phases that make up our tool and showed how we solved them, let us
+the three phases that define our tool and showed how we solved them, let us
 briefly present the physical structure and organization of this project.
 
 As most Scala projects, the test suites are separated from the source code: the

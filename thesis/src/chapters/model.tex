@@ -133,8 +133,7 @@ Therefore, we can improve our model by splitting each chain IVD as shown in
   \centering
   \captionsetup{justification=centering}
   \includegraphics[scale=0.5]{src/img/iptables-2-composition}
-  \caption[Concrete (per-table) chains make up individual chain IVDs.]{Concrete
-  (per-table) chains make up individual chain IVDs.}
+  \caption{Concrete (per-table) chains constitute a processing step.}
   \label{fig:iptables-2-composition}
 \end{figure}
 
@@ -244,10 +243,10 @@ result, as pointed out by the dashed brackets.
 
 How do we model this new internal structure of a chain IVD using SEFL?
 Firstly, by decomposing its previously unified logic into multiple smaller IVDs
-called \textbf{contiguous IVDs}. Each one of these new virtual devices that
-make up a chain IVD implements the simple traversal algorithm presented in the
-previous section for a sublist of rules.  Furthermore, to do this, it turns out
-that we do not need to separate boundary rules from the sublist that
+called \textbf{contiguous IVDs}. Each one of these new virtual devices that are
+part of up a chain IVD implements the simple traversal algorithm presented in
+the previous section for a sublist of rules.  Furthermore, to do this, it turns
+out that we do not need to separate boundary rules from the sublist that
 \textbf{precede} them.  This is indicated via bold brackets
 \labelindexref{Figure}{fig:splitting-rules}.  This separation is not needed
 because our splitting guarantees that the last rule in the previous sublist
@@ -267,8 +266,8 @@ forwarded to the next one.  Finally, we need to dispatch as part of our SEFL
 model both input and returned packets, as follows:
 \begin{itemize}
   \item \textbf{Input} packets to one of the (possibly) many contiguous IVDs
-    that make up a chain IVD.  That is, newly arrived packets should always be
-    forwarded to the first one, while \emph{returning} packets should be
+    that are part of a chain IVD.  That is, newly arrived packets should always
+    be forwarded to the first one, while \emph{returning} packets should be
     forwarded to the one that follows the \emph{caller} IVD (using the function
     analogy from a previous paragraph).  To do this, a metadata field is
     allocated and assigned when performing jumps, and deallocated when
