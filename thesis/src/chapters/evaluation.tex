@@ -2,10 +2,13 @@
 
 \section{Acceptance tests}
 
+
+
 Things to say:
 * remind about model-real system equivalence problem
 * we cannot achieve that, but we want to ensure that all features that we do
-support are implemented and behave as expected.
+support are implemented and behave as expected. here also mention the black-box
+testing approach which we did not do yet, though.
 
 * make sure that its clear what 'acceptance tests' are.
 * we performed extensive unit and integration testing which has boosted our
@@ -16,14 +19,24 @@ confused with the generated code coverage, and that is why we perform as many
 acceptance tests as possible.
 
 * the following is a non-exhaustive and in no particular order list of
-scenarios that we want to ensure that work as expected: blabla
+scenarios that we want to ensure that work as expected: blabl
+* in fact, make this a list of paragraphs following the template: short
+description + image.
 
+
+* the Scala code for a small test is featured in figure ...
 \begin{listing}[H]
   \caption{An example of NAT misconfiguration.}
   \label{lst:example}
   \sourcecode{scala}{src/code/simple-nat.scala}
 \end{listing}
 
+
 \section{Performance tests}
+
 Things to say:
+* overall results
 * framework used, benchmark, etc
+
+* tables/graphs: 1. many rules, on a single filter table; 2. many IPTRouters in
+line.
