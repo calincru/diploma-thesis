@@ -2,35 +2,69 @@
 
 \section{Acceptance tests}
 
+Acceptance tests help answer the question \emph{"Does our model reflect the
+behaviour of the real system (i.e. netfilter)?"}  Certainly we would prefer to
+avoid introducing bugs in our software system that is supposed to find bugs in
+another one. In some formal verification systems the \emph{model - real system}
+equivalence is enforced by construction.  However, this is not true in SymNet
+for reasons described in \labelindexref{Section}{sec:symnet-sefl}, and,
+thus, we need to run hand-crafted tests to confirm our expectations.
 
+Driven by this insight from the very beginning, we have performed extensive
+unit testing, focusing on specific components and/or behaviours, as well as
+integration testing, when linking them together.  Our testing suite contains
+more than \textbf{130 total tests} and achieves over \textbf{91\% code
+coverage}.  This means that we have generated models that cover most of our
+model generation corner cases.  However, this should not be confused with
+\emph{generated code} coverage, which also depends on input packet, input port,
+as well as the interaction with the network as a whole, given that we also
+model stateful functions.
 
-Things to say:
-* remind about model-real system equivalence problem
-* we cannot achieve that, but we want to ensure that all features that we do
-support are implemented and behave as expected. here also mention the black-box
-testing approach which we did not do yet, though.
+In the following paragraphs we show a small subset of the scenarios that we
+tested against.
 
-* make sure that its clear what 'acceptance tests' are.
-* we performed extensive unit and integration testing which has boosted our
-productivity by making it easy to refactor, etc.  The code coverage is
-currently 91\% and it is almost as much as it can get.  This means that we do
-pass through our tool's code at least one time; however, that should not be
-confused with the generated code coverage, and that is why we perform as many
-acceptance tests as possible.
+\paragraph{Simple NAT policy.}
+We start with a very simple example to allow us to include the code too.  In
+this way, we give an intuition of how these tests are performed.
 
-* the following is a non-exhaustive and in no particular order list of
-scenarios that we want to ensure that work as expected: blabl
-* in fact, make this a list of paragraphs following the template: short
-description + image.
+\labelindexref{Listing}{lst:unreachable-rule} shows the entire test.  Between
+\textbf{lines 2-7} the nat/POSTROUTING chain is set up with two rules: one to
+match an entire private network (\lstinline{-s 192.168.1.0/24}) and the other
+one to only match a host in the  same network (\lstinline{-s 192.168.1.100}).
+Between \textbf{lines 8-13} we run symbolic execution injecting a packet with
+the source IP set to \lstinline{192.168.1.100} (line 12), starting from this
+chain's input port (lines 10-11).  Between \textbf{lines 14-19} we define the
+\emph{rewrite constrain} that we expect to take place.  Finally, at line 21 we
+\textbf{express the policy} using the custom Scala matcher,
+\emph{containConstrain} that looks up the given constrain in the list of
+successful paths output by symbolic execution.
 
-
-* the Scala code for a small test is featured in figure ...
 \begin{listing}[H]
   \caption{An example of NAT misconfiguration.}
-  \label{lst:example}
+  \label{lst:unreachable-rule}
   \sourcecode{scala}{src/code/simple-nat.scala}
 \end{listing}
 
+This example is intended to show how a network administrator would express
+policies and catch inconsistencies.  Indeed, this test fails because the
+specified host IP matches the first rule in the table.  In fact, the second
+rule will never be matched, indicating a misconfiguration which would hopefully
+be found as a result of the policy failing.
+
+\paragraph{Conntrack state.}
+Add this.
+
+\bigskip
+
+An alternative approach to the \emph{model - real system} equivalence problem
+that we have yet to experimented with is \emph{black-box testing}.  It requires
+establishing a(n) (usually large) list of input packets and injecting them both
+in the real system and in its model constructed with \TOOL.  Then, monitor
+output packets in the real iptables-enabled device and try to match them
+against the exhaustive list of (symbolic) packet flows output by SymNet.  If
+for some input packet there is no symbolic flow that matches the observed
+output packet the equivalence is denied.  The inverse is obviously not true,
+but it increases our \emph{belief} that the implementation is correct.
 
 \section{Performance tests}
 

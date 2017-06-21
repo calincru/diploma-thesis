@@ -3,3 +3,19 @@
 \paragraph{Summary.}
 
 \paragraph{Future work.}
+Because our efforts were targeted at having a feature-full implementation that
+can take a real world iptables deployment and return a SEFL model, there is
+still room for optimization in terms of the generated SEFL code.  One key
+observation is that most of the verification time is spent in the underlying
+satisfiability solver.  It is the main source of memory consumption too.
+Therefore, fine-tuning our code to generated only the needed conditions on each
+execution path (or as close to that as possible) can help dramatically speed up
+symbolic execution.  However, this is by itself a very hard problem considering
+the involved semantics of some iptables rules.
+
+In addition to that, further integration testing needs to be performed.  In
+this thesis, we limited our tests to synthetic rules which might miss certain
+practices that are common in real deployments.  In fact, this is just a small
+part of a larger project that aims to build a provably correct model of an
+OpenStack deployment.  Therefore, integrating it with the other networking
+components used as part of Neutron will be the immediate follow-up challenge.
