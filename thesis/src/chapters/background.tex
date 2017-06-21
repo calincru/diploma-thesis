@@ -7,17 +7,17 @@ al.~\cite{stoenescu2013symnet, stoenescu2016symnet}
 We first give a short overview of the broad field of network verification, with
 an emphasis on the approach that we use: static verification powered by
 symbolic execution.  We then show how it is implemented in SymNet, and how
-SymNet can be used to verify the models we build.  Finally, we go into details
-about iptables; we discuss its internal organization, as well as its most
-common features.
+SymNet can be used to verify the models we build.  Finally, we cover iptables
+in detail; we discuss its internal organization, as well as its most common
+features.
 
 
 \section{Network verification}\label{sec:network-verification}
 Formal verification is the act of proving or disproving the correctness of
 intended algorithms underlying a system with respect to a certain formal
-specification or property, using formal methods of mathematics. Network
-verification is merely formal verification tailored for network-related
-questions.
+specification or property, using formal methods of
+mathematics~\cite{sanghavi2010formal}. Network verification is merely formal
+verification tailored for network-related questions.
 
 \paragraph{Correctness.}\label{par:correctness}
 But in order to apply it, we first need to provide a rigorous definition for
@@ -152,7 +152,7 @@ greatly overweight its advantages:
 
 \begin{itemize}
   \item The search space is implicitly defined by the test cases, which means
-    that a good coverage corresponds to an (exponentially) large number of
+    that a good coverage corresponds to a(n) (exponentially) large number of
     tests.
   \item Adding to the previous point, there is an inherent bias introduced by
     having the test cases cover commonly observed behaviours, without exploring
@@ -165,9 +165,9 @@ greatly overweight its advantages:
 \subsection{Static data plane verification}\label{sub-sec:static-dp-verif}
 
 Starting from the observation that including control planes in our models with
-the end goal of verifying multiple properties of large (i.e.  enterprise-sized)
+the end goal of verifying multiple properties of large (i.e.  enterprise-size)
 networks does not scale, we are left with the smaller part of each network
-device: its data plane.
+device: its data plane (\labelindexref{Figure}{fig:data-plane-snapshot}).
 
 \begin{figure}[h]
   \centering
@@ -181,12 +181,11 @@ Data planes (often \textbf{forwarding planes}) include only the \emph{rules}
 needed by devices to expose the functionality they are designed for.  For
 example, the data plane of a router is represented by its routing table, and,
 possibly, packet filtering ACLs (Access Control Lists)\abbrev{ACL}{Access
-Control List}.  A switch takes its decisions based on the Media Access Control
-(MAC)\abbrev{MAC}{Media Access Control} table. Both of these tables are
-specific instances of the more general Forwarding Information Base
-(FIB)\abbrev{FIB}{Forwarding Information Base}, a name that refers to the
-specialized hardware components responsible for forwarding in various network
-devices.
+Control List}.  A switch takes its decisions based on the MAC\abbrev{MAC}{Media
+Access Control} table. Both of these tables are specific instances of the more
+general Forwarding Information Base (FIB)\abbrev{FIB}{Forwarding Information
+Base}, a name that refers to the specialized hardware components responsible
+for forwarding in various network devices.
 
 Limiting the models to network data planes can be interpreted in two
 contradictory ways:
@@ -204,7 +203,7 @@ we simply ignore any process that leads to the current network
 \emph{configuration} and establish whether it is a correct one or not.  If it
 is, then an incremental analysis can be applied from that point forward: this
 implies analyzing only the updates that reach the data plane, a technique which
-has already been studied in the neighbouring field of software
+has already been studied in the parent field of software
 verification~\cite{marinescu2013katch}.  If our initial verification reports
 failure, human intervention is required in order to detect the control plane
 problem that caused the unexpected rule in the data plane.
@@ -222,8 +221,8 @@ tree.  A state, in this context, is a collection of variables together with
 their constraints expressed in terms of symbolic inputs of the program and/or
 other variables.
 
-To make things clearer, let us step through a concrete example and highlight
-the construction of the symbolic execution tree
+To clarify things, let us step through a concrete example and highlight the
+construction of the symbolic execution tree
 (\labelindexref{Figure}{fig:simple-tree}) for a simple C function
 (\labelindexref{Listing}{lst:simple-c}):
 \begin{itemize}
@@ -383,16 +382,16 @@ stored in each stateful device it traverses.
 An example of how this works is presented in
 \labelindexref{Figure}{fig:snat-example}.  The user on the right initiates a
 connection with the server on the left \textbf{(1)}.  He is behind a NAT
-appliance which is configured to do SNAT (Source NAT) on outgoing connections.
-Since the 5-tuples identifying address translations are stored by the NAT box,
-we model its logic in SEFL by adding this information as part of the flow. Due
-to lack of space, in this example we only include the source and the
-destination IP addresses; the star in front of these new fields helps
-differentiate regular packet headers and state-related fields \textbf{(2)}.
-The reply packet is part of the same flow, so we make sure it keeps these
-fields unchanged \textbf{(3)}.  When the reply arrives at the NAT box, it uses
-the state fields to apply the reverse translation; finally, it forwards the
-packet to its original source \textbf{(4)}.
+appliance which is configured to SNAT (Source NAT) outgoing connections.  Since
+the 5-tuples identifying address translations are stored by the NAT box, we
+model its logic in SEFL by adding this information as part of the flow. Due to
+lack of space, in this example we only include the source and the destination
+IP addresses; the star in front of these new fields helps differentiate regular
+packet headers and state-related fields \textbf{(2)}.  The reply packet is part
+of the same flow, so we make sure it keeps these fields unchanged \textbf{(3)}.
+When the reply arrives at the NAT box, it uses the state fields to apply the
+reverse translation; finally, it forwards the packet to its original source
+\textbf{(4)}.
 
 \bigskip
 
@@ -543,8 +542,7 @@ not make the subject of this chapter.
 
 \textbf{Running} SymNet is as simple as providing
 \begin{enumerate*}[a)]
-  \item the graph $G$ defined in the previous section
-    (\labelindexref{Section}{sub-sec:building-models}) that models the analyzed
+  \item the graph $G$ defined in the previous section that models the analyzed
     network, and
   \item an initial packet and a port to bootstrap symbolic execution with.
 \end{enumerate*}
@@ -573,7 +571,7 @@ a viable option.  This is often the case when a very constrained bootstrapping
 packet is used.  However, more often than not this list is too large to be
 inspected by hand.  For these cases, we have devised Scala matchers to use in
 our automated testing suites.  In addition to that, as already discussed in
-\labelindexref{Section}{sec:network-verification} there are ongoing efforts to
+\labelindexref{Section}{sec:network-verification}, there are ongoing efforts to
 integrate policy validation as part of the symbolic execution engine, by means
 of various computation logics, such as CTL (Computation tree
 logic)\abbrev{CTL}{Computation tree logic}.
@@ -582,7 +580,7 @@ logic)\abbrev{CTL}{Computation tree logic}.
 \section{iptables}
 
 Before delving into how we build a model of an iptables-enabled device using
-SEFL and have it verified with SymNet, we first give an overview of what
+SEFL and have it verified with SymNet, we must give an overview of what
 iptables is and how it works.
 
 We start with \textbf{netfilter} which is a framework provided by the Linux
@@ -638,9 +636,9 @@ used ones are:
 
 The lowercase spelling of table names is part of the convention adopted by
 iptables/netfilter.  In terms of the netfilter implementation, each table
-corresponds to a new hook in the hook system used by netfilter to allow
-seamless extension and hot-plugging.  Therefore, tables are traversed in a
-pre-established, built-in \textbf{order}: raw, mangle, nat, filter.
+corresponds to a new hook in the hook system used to allow seamless extension
+and hot-plugging.  Therefore, tables are traversed in a pre-established,
+built-in \textbf{order}: raw, mangle, nat, filter.
 
 \paragraph{Chains.}
 As far as the chains are concerned, they specify the point in the

@@ -7,7 +7,7 @@ verified using SymNet.
 We begin with a high-level outline of the computation steps that take place
 between dumping iptables configurations to returning a model as expected by
 SymNet.  Following that, we take each of those steps separately and discuss the
-most important aspects of their implementation details.
+most important aspects of their implementation.
 
 
 \section{Design overview}
@@ -32,14 +32,14 @@ structure of a compiler too; it features three separate, well-defined phases:
       \item ensures that the configurations conform to the official
         specifications, and
       \item augments the AST with additional semantic information that either
-        could not be gathered during parsing or it yields a more robust design
-        to do it now.
+        could not be gathered during parsing or it is more robust to do it in a
+        second pass.
     \end{enumerate*}
   \item \textbf{Code generation}. This phase is essential in any compiler and
     ours is no exception: based on the now validated in-memory AST we generate
     SEFL code for every rule as a two step process: first generate the
-    constraints that correspond to rule's matches, and then
-    generate the code to follow its target.
+    constraints that correspond to rule matches, and then generate the code to
+    follow its target.
 
     In addition to that, we also consider as part of this step putting all
     things together according to the model template devised in the previous
@@ -47,9 +47,10 @@ structure of a compiler too; it features three separate, well-defined phases:
     \labelindexref{Figure}{fig:chain-internal}).  We call it a \emph{template}
     because it is only a model once we fill it with real rules.  In fact, this
     step is similar to the \emph{backend} component in a compiler that is tied
-    to a concrete machine architecture instead of an abstract one.  Until this
-    step, the AST is a simplified and better organized view of the input rules
-    but it still abstract enough to target various table/chain structures.
+    to a concrete machine architecture instead of an abstract one.  Prior to
+    this step, the AST is a simplified and better organized view of the input
+    rules but it still abstract enough to target various table/chain
+    structures.
 \end{itemize}
 
 \begin{figure}[h]
@@ -76,12 +77,13 @@ change are the leaves: the matches and the targets.
 
 In addition to the AST types that are used throughout all three computation
 phases of our tool, it is worth introducing the class hierarchy behind our
-model template too.  It is designed to clearly separate each component (i.e.
-\emph{virtual device}) that we identified in the previous chapter and to make
-their interconnection as smooth as possible. It also inherits the composite
-pattern approach from our core AST hierarchy.
+model template too (Figure \labelindexref{Figure}{fig:virtdev-hierarchy}).  It
+is designed to clearly separate each component (i.e.  \emph{virtual device})
+that we identified in the previous chapter and to make their interconnection as
+smooth as possible. It also inherits the composite pattern approach from our
+core AST hierarchy.
 
-\clearpage
+% \clearpage
 \begin{figure}[h]
   \centering
   % \captionsetup{justification=centering}
@@ -91,25 +93,28 @@ pattern approach from our core AST hierarchy.
   \TOOL.  Interfaces \emph{Target} and \emph{Match} are the ones that must be
   subclassed when adding extensions.  It is also indicated that a
   \emph{UserChain} can be jumped to as it implements the \emph{Target}
-  interface.  The \textbf{NegatedMatch} class is a utility class to
-  conveniently negate another \emph{Match} instance.}
+  interface.  The \textbf{NegatedMatch} class is used to conveniently express
+  the negation of another \emph{Match} instance.}
   \label{fig:ipt-hierarchy}
+\end{figure}
 
-  \vspace*{\floatsep} % https://tex.stackexchange.com/q/26521/5764
+  % \vspace*{\floatsep} % https://tex.stackexchange.com/q/26521/5764
+\begin{figure}[h]
+  \centering
 
   \includegraphics[scale=0.55]{src/img/virtdev-hierarchy}
-  \caption[The class hierarchy of the model template part in \TOOL.]{The class
-  hierarchy of the model template part in \TOOL. Besides the abstract base
-  class \emph{VirtualDevice}, there are three other classes designed for
-  components with certain expectations: \emph{RegularVirtualDevice} for
-  self-contained ones, \emph{CompositeVirtualDevices} for components that might
-  built upon some other ones, and \emph{IptablesVirtualDevice} for components
-  that implement \emph{"iptables"} logic: receive packets, traverse list of
-  rules and apply target, which might result in an \emph{accept} or a
-  \emph{drop}.}
+  \caption[The class hierarchy that defines the model template part in
+  \TOOL.]{The class hierarchy of the model template part in \TOOL. Besides the
+  abstract base class \emph{VirtualDevice}, there are three other classes
+  designed for components with certain expectations:
+  \emph{RegularVirtualDevice} for self-contained ones,
+  \emph{CompositeVirtualDevices} for components that might built upon some
+  other ones, and \emph{IptablesVirtualDevice} for components that implement
+  \emph{"iptables"} logic: receive packets, traverse list of rules and apply
+  target, which might result in an \emph{accept} or a \emph{drop}.}
   \label{fig:virtdev-hierarchy}
 \end{figure}
-\clearpage
+% \clearpage
 
 On top of the compiler-like internal structure, \TOOL features an
 \textbf{extension-oriented design} that aims to ease as much as possible the
@@ -167,7 +172,12 @@ de-sugars into repeated applications of the \hlmath{$>>=$} operator (called
 \textbf{bind}) which is one of the defining functions behind monads.
 
 \begin{listing}[H]
-  \caption{Some of the base combinators we use to build parsers.}
+  \caption[Some of the base combinators we use to build parsers.]{Some of the
+  base combinators we use to build parsers.  Note that \emph{some} and
+  \emph{many} (line 4) are mutual recursive.  For instance, the implementation
+  of \emph{many} can be read as \emph{either parse some \textbf{T}s or fail}
+  (return Nil, the empty list).  For \emph{some} (line 7) it would be \emph{one
+  \textbf{T needs} to be parsed; then, maybe parse some others.}}
   \label{lst:combinators}
   \sourcecode{scala}{src/code/combinators.scala}
 \end{listing}
@@ -178,8 +188,8 @@ configuration file, we defined a simple format for chain and table
 specification, starting from (and integrating) the grammar of a rule
 (\labelindexref{Listing}{lst:rule-grammar}).  To get such a configuration file
 from an existing deployment we also provide a script that translates from the
-raw format output by issuing \texttt{iptables -S} to our format.  The complete
-grammar is shown in \labelindexref{Listing}{lst:our-grammar} below.
+raw format output (\texttt{iptables -S}) to the one defined by us.  The
+complete grammar is shown in \labelindexref{Listing}{lst:our-grammar} below.
 
 \begin{listing}
   \small
@@ -231,7 +241,8 @@ refers to the \emph{nfmark} field (netfilter mark).
   \caption{Two iptables rules that highlight the extension specific option
   \emph{mark} which yields different behaviours when activated by match
   extensions \emph{connmark} and \emph{mark}.  They are taken from a real-world
-  OpenStack deployment.}
+  OpenStack deployment.  For more details about the rules, check out
+  \labelindexref{Appendix}{app:iptables-extensions}.}.
   \label{lst:namespace-example}
 \end{listing}
 
@@ -239,7 +250,7 @@ How do we support this behaviour as early as parsing time?  We introduce the
 notion of \emph{match-enabled extensions}.  Thus, to correctly parse (i.e.
 build a correct AST) for both rules, we change our rule parser to use a
 \emph{cycle-based parsing} approach: we start with two extensions that
-recognize options \lstinline{-m connmark} and \lstinline{-m mark}, and leverage
+recognize flags \lstinline{-m connmark} and \lstinline{-m mark}, and leverage
 our new feature by updating the current activated extensions with the ones
 enabled by the previously parsed match.  Then, the next \emph{cycle} begins.
 
@@ -324,22 +335,22 @@ Other common configuration checks are (in no particular order):
     name)
 \end{enumerate}
 
-We end this section with an example of a scenario in which our validation rules
-were too tight, reflecting our understanding of the official specification at
-that moment, and a real-world deployment proved us wrong.  Some manual pages
-mention that target ACCEPT can appear only in the \emph{filter} table.  Despite
-being a trustworthy source, it turned out that it can be used in any other
-table for \textbf{short-circuiting} the remaining traversal of that chain.
-This is one of the desirable situations in which all we had to do was to drop
-one check and still have everything work correctly.  In other scenarios, code
-refactoring was needed.
+We end this subsection with an example of a scenario in which our validation
+rules were too tight, reflecting our understanding of the official
+specification at that moment, and a real-world deployment proved us wrong.
+Some manual pages mention that target ACCEPT can appear only in the
+\emph{filter} table.  Despite being a trustworthy source, it turns out that it
+can be used in any other table for \textbf{short-circuiting} the remaining
+traversal of that chain.  This is one of the desirable situations in which all
+we had to do was to drop one check and still have everything work correctly.
+In other scenarios, code refactoring was needed.
 
 \paragraph{Forward references to user chains.}
 Another problem that came out early in the development process was that a user
 chain might appear as part of the input configuration file \textbf{after} a
-rule that jumps to it, from a previous chain.  The problem is that both a list
-of \emph{Match}es and a \emph{Target} are required in order to construct an
-instance of class \emph{Rule}, but at that point in the parsing process, a
+rule that jumps to it, belonging to a previous chain.  The problem is that both
+a list of \emph{Match}es and a \emph{Target} are required in order to construct
+an instance of class \emph{Rule}, but at that point in the parsing process, a
 reference to the \emph{yet to be parsed} chain cannot be obtained.
 
 The way we solved it was by creating a dummy implementation of trait
@@ -353,18 +364,20 @@ languages that do not impose preceding declarations at lexical scope for
 referenced names.
 
 \paragraph{Interface name wildcards.}
+% CAREFUL "\\"
 Lastly, a less well known feature of iptables is that a string followed by a
 plus can be used to match all interfaces that are prefixed by that string, as
 part of the \lstinline{--in-interface} and {\lstinline{--out-interface}
-matches.  For instance, the rule \lstinline{--out-interface eth+ -j ACCEPT} can
-be used to accept all traffic that exits an Ethernet interface.
+matches.  For instance, the rule\\
+\lstinline{--out-interface eth+ -j ACCEPT} can be used to accept traffic that
+leaves this device on Ethernet interfaces.
 
 Modelling string operations in an efficient manner for symbolic execution is an
 open problem.  However, we can avoid doing that by statically determining the
-interfaces that start with the specified string, and modify and repeat that
-rule for each one of them.  For the previous rule, if our device had
-interfaces \emph{eth0}, \emph{eth1} and \emph{eth2}, among others, the chain of
-rules would become:
+interfaces that start with the specified string, followed by modifying and
+repeating that rule for each one of them.  For the previous rule, if our device
+used interfaces \emph{eth0}, \emph{eth1} and \emph{eth2}, among others, the
+chain of rules would become:
 
 \begin{listing}
   \lstset{numbers=none, frame=single, basicstyle=\ttfamily,
@@ -381,19 +394,19 @@ rules would become:
   \end{lstlisting}
 \end{listing}
 
+% CAREFUL "\\"
 Implementation-wise, we handle this similarly to how we handled match extension
 loading to avoid name clashes between different options: we add a method to
-class \emph{Rule}, \hlmath{mutate(interfaces: List[String]): List[Rule]}, that
-receives a list of interface names and returns a list of generated rules.  It
-is called for all rules during chain validation.
-
-A rule that does not contain any interface match will return a list containing
-just itself.  One that does will return a list as shown in the previous
-example.  An interesting thing to note is that it might also return an empty
-list which means that no interface matched.  This can be seen as an
-optimization.  However, we would probably be much better off check-failing on
-this condition and let the network administrator know that his deployment
-contains a redundant rule, which is probably not intended.
+class \emph{Rule},\\ \hlmath{mutate(interfaces: List[String]): List[Rule]},
+that receives a list of interface names and returns a list of generated rules.
+It is called for all rules during chain validation.  A rule that does not
+contain any interface match will return a list containing just itself.  One
+that does will return a list as shown in the previous example.  An interesting
+thing to note is that it might also return an empty list which means that no
+interface matched.  This can be seen as an optimization.  However, we would
+probably be much better off check-failing on this condition and letting the
+network administrator know that his deployment contains a redundant rule, which
+is probably not intended.
 
 
 \section{Code generation}\label{sec:codegen}
@@ -412,7 +425,7 @@ in \labelindexref{Chapter}{chapter:model}.
 We cover both aspects in this section.
 
 \paragraph{Match/target codegen.}  The extension-based design allows decoupling
-extensions  from the core of \TOOL.  Following the same approach as for
+extensions from the core implementation.  Following the same approach as for
 validation, we augment the code with two methods:
 \begin{itemize}
   \item \hlmath{seflCode(options: CodegenContext): Instruction} in trait
@@ -424,11 +437,12 @@ validation, we augment the code with two methods:
 Both of them receive an object of type \emph{CodegenContext} which aggregates
 both context related information, such as port ids for accepting, dropping,
 returning packets (e.g. used as \emph{Forward(port)}), and constant data
-structures such as a Map from interface names to their internal identifiers.
+structures such as a Map from interface names to their internal identifiers
+(e.g. used by matches such as \lstinline{--in-interface}).
 
 That being said, their return types differ. A target may return any instruction
 type, and usually it really aggregates multiple ones in a single
-\emph{InstructionBlock}, when complex logic is expressed (e.g. SNAT, MARK). On
+\emph{InstructionBlock} when complex logic is expressed (e.g. SNAT, MARK). On
 the other hand, a match returns a custom class, \emph{SeflCondition}.  In most
 cases it contains a single \emph{Constrain} instruction, but there are some
 matches that express a conjunction of \emph{Constraint}s.  The best example is
@@ -528,8 +542,8 @@ This algorithm is made a lot more complex by the following iptables features:
     the current \emph{nfmark} value and then it sequentially jumps to three
     other user chains.  Each one of them contains rules to match specific
     traffic and mark it with a unique value.  If at the end of this processing
-    the mark value is 0xE, it accepts the packet.  Otherwise, it is dropped, as
-    specified in the chain policy.
+    the mark value is 0xE (specific to management traffic), it accepts the
+    packet.  Otherwise, it is dropped, as specified in the chain policy.
 \end{itemize}
 
 \begin{listing}
