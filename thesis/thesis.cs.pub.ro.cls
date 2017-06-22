@@ -79,6 +79,7 @@
 \usepackage{color}
 \usepackage{lmodern}  % for bold teletype font
 \usepackage{minted}
+\usepackage{nth}
 \usepackage{parcolumns}
 \usepackage{soul}
 \usepackage{tabularx}

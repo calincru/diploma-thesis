@@ -17,7 +17,8 @@
   \footnotesize
   \begin{tabularx}{\textwidth}[t]{ |X|X| }
     \hline
-    \multicolumn{2}{ |c| }{\normalsize{Match extensions}}
+    \multicolumn{2}{ |c| }{\normalsize{Match
+      extensions}~\cite{iptables-extensions}}
     \\ \hline
 
     % Comment
@@ -60,31 +61,25 @@
     \newline \lstinline{[!] --syn}
     \newline \lstinline{[!] --tcp-option number} &
     These extensions can be used if \lstinline{--protocol/-p tcp} is specified,
-    besides the usual \lstinline{-m/--match tcp}.
-    \newline The first option matches the given source port number or port
-    range.
-    \newline The second option matches the given destination port number or
-    port range.
-    \newline The third option matches when the TCP flags are as specified.  The
-    first argument, \emph{mask} is the flags which we should examine, given as
-    a comma-separated list.  The second argument, \emph{comp}, is a
-    comma-separated list of flags which must be set.  Flags are \textbf{SYN ACK
-    FIN RST URG PSH ALL NONE}.
-    \newline The fourth option matches TCP packets with the SYN bit set and the
-    ACK, RST and FIN bits cleared. Such packets are used to request TCP
-    connection initiation.
-    \newline The fifth option matches if the specified TCP option is set.
+    besides the usual \lstinline{-m/--match tcp}. The first option matches the
+    given source port number or port range.  The second option matches the
+    given destination port number or port range.  The third option matches when
+    the TCP flags are as specified.  The first argument, \emph{mask} is the
+    flags which we should examine, given as a comma-separated list.  The second
+    argument, \emph{comp}, is a comma-separated list of flags which must be
+    set.  Flags are \textbf{SYN ACK FIN RST URG PSH ALL NONE}.  The fourth
+    option matches TCP packets with the SYN bit set and the ACK, RST and FIN
+    bits cleared. Such packets are used to request TCP connection initiation.
+    The fifth option matches if the specified TCP option is set.
     \\ \hline
 
     % Udp
     \lstinline{[!] --source-port,--sport port[:port]}
     \newline \lstinline{[!] --destination-port,--dport port[:port]} &
     These extensions can be used if \lstinline{--protocol/-p udp} is specified,
-    besides the usual \lstinline{-m/--match udp}.
-    \newline The first option matches the given source port number or port
-    range.
-    \newline The second option matches the given destination port number or
-    port range.
+    besides the usual \lstinline{-m/--match udp}.  The first option matches the
+    given source port number or port range.  The second option matches the
+    given destination port number or port range.
     \\ \hline
 
   \end{tabularx}
@@ -95,7 +90,8 @@
   \footnotesize
   \begin{tabularx}{\textwidth}[t]{ |X|X| }
     \hline
-    \multicolumn{2}{ |c| }{\normalsize{Target extensions}}
+    \multicolumn{2}{ |c| }{\normalsize{Target
+      extensions}~\cite{iptables-extensions}}
     \\ \hline
 
     % CT
