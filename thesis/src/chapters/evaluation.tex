@@ -61,14 +61,91 @@ specified host IP matches the first rule in the table.  In fact, the second
 rule will never be matched, indicating a misconfiguration which would hopefully
 be found as a result of the policy failing.
 
-\paragraph{Conntrack state switch.}
-TBA
+\paragraph{NAT-ed connections.}
+To take our previous SNAT configuration from a toy example that is intended to
+give a glimpse at how simple policies can be expressed in code to an
+end-to-end one, we use a network topology as shown in
+\labelindexref{Figure}{fig:source-nating}.
 
-\paragraph{Source NATed connection.}
-TBA
+\begin{figure}[h]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.5]{src/img/source-nating}
+  \caption{Generic network configuration used to test various stateful
+  functions.}
+  \label{fig:source-nating}
+\end{figure}
+
+The \textbf{IP mirror} component is used to model reply packets.  Thus, by
+connecting two of them through an intermediate device that is our
+iptables-enhanced router, we obtain bi-directional communication between them.
+This is in fact a pattern we often use when testing any kind of stateful
+configuration.  It is not tied to NAT-ing in any way.
+
+How do we specialize it for NAT testing?  Besides the rules that define our
+model, the specific scenarios that we test are controlled by input packets and
+input ports.  For instance:
+\begin{itemize}
+  \item To test that SNAT rules are \textbf{correctly applied}, we inject an
+    initial packet that matches the rule we are interested in on the output
+    port of \emph{IP mirror 1} and check if a packet with the rewritten source
+    IP reaches the input port of \emph{IP mirror 2}.
+  \item To test that \textbf{reverse} SNAT rules are correctly applied, we add
+    one more policy rule to the previous example: a packet with the reverse
+    source/destination IPs should reach the input port of \emph{IP mirror 1}.
+  \item To test that the nat/POSTROUTING chain is traversed \textbf{only once}
+    for a SNAT-ed connection, we add the following policy rule: the input port
+    of this particular chain is traversed only once.  The special logic for
+    skipping it otherwise is subjected to test here.
+  \item To test that the same rule does not apply if the connection is
+    initiated from the \textbf{opposite direction} (SNAT rules use source IP
+    matches, in general), we inject a packet on the output port of \emph{IP
+    mirror 2} and check that a packet with the rewritten source IP \textbf{does
+    not} reach the input port of \emph{IP mirror 1}.
+  \item To make the previous scenario work, we change our model by adding a
+    DNAT rule in the nat/PREROUTING chain.  We make sure that all previous
+    policies are still valid.
+\end{itemize}
+
+This is a non-exhaustive list but gives a good idea of the challenges behind
+Network Address Translation testing.
+
+\paragraph{Connection state switch.}
+Another key feature that has been thoroughly tested is the transition between
+connection states.
+
+The network model we built to test it is shown in
+\labelindexref{Figure}{fig:state-switch}.  It consists of our regular
+iptables-enabled device (left) and an IP mirror element that is used to
+generate reply packets, as previously described (right).  We simulate traffic
+from our device to the server by injecting a concrete packet on the output port
+of the local process component.  As discussed at the end of
+\labelindexref{Chapter}{chapter:model}, we expose this port as part of the
+interface of our model precisely for this reason
+(\labelindexref{Figure}{fig:local-process-out}).
+
+A new metadata field is stored for each packet flow to track its connection
+state, intuitively called \textbf{ctstate}.  The first time a packet belonging
+to a connection is seen, its \emph{ctstate} is set to \NEW (transition
+\textbf{1 -> 2}).  Once a packet in the \textbf{reverse} direction is
+processed, the state becomes \ESTABLISHED (transition \textbf{3 -> 4}).  Our
+policy in this case can be stated such as: \emph{there must be a packet flow
+that reaches the local process and its ctstate field is ESTABLISHED}.
+
+\begin{figure}[h]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[scale=0.5]{src/img/state-switch}
+  \caption[Network model built to test connection tracking.]{Network model
+  built to test connection tracking. Fields in bold font are the ones modified
+  in the last step.}
+  \label{fig:state-switch}
+\end{figure}
 
 \paragraph{Untracked connection.}
-TBA
+As a follow-up scenario for the previous one, we also ensured that marking
+certain traffic as \UNTRACKED in the \emph{raw} table leads to no state
+transitions.
 
 \bigskip
 
@@ -92,16 +169,21 @@ Things to say:
 1. many rules, on a single filter table;
 2. many IPTRouters in line.
 * overall results
-* framework used, benchmark, etc
 * tables/graphs
 
 \bigskip
 
 Besides these script-generated configurations, we have also run SymNet on a
-model of an OpenStack qrouter from a real deployment.  Its complete iptables
-dump is included in \labelindexref{Appendix}{app:qrouter}.
+model of a Neutron L3 agent\footnote{It is essentially a router that uses the
+Linux IP stack and iptables in an isolated \emph{network namespace}.  This in
+turn is the Linux terminology for the \emph{Virtual Routing and Forwarding}
+(VRF)\abbrev{VRF}{Virtual Routing and Forwarding} concept that takes the idea
+of Virtual Local Area Networks (VLANs)\abbrev{VLAN}{Virtual Local Area Network}
+from the L2 switching world to the L3 world.} from a real OpenStack deployment.
+Its complete iptables dump is included in
+\labelindexref{Appendix}{app:qrouter}.
 
-Exploring all possible execution paths by inserting a pure symbolic packet to
+Exploring all possible execution paths by injecting a pure symbolic packet on
 one of its input ports takes around \textbf{25s} and \textbf{6GB} of RAM.  This
 generates 1345 packet flows.  Only 74 of them are successful.  Out of all
 failed ones only 6 are explicitly dropped.  The remaining ones are packets

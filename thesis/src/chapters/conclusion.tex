@@ -3,15 +3,15 @@
 \paragraph{Summary.}
 
 \paragraph{Future work.}
-Because our efforts were targeted at having a feature-full implementation that
-can take a real world iptables deployment and return a SEFL model, there is
-still room for optimization in terms of the generated SEFL code.  One key
-observation is that most of the verification time is spent in the underlying
-satisfiability solver.  It is the main source of memory consumption too.
-Therefore, fine-tuning our code to generate only the needed conditions on each
-execution path (or as close to that as possible) can dramatically speed up
-symbolic execution.  However, this is by itself a very hard problem considering
-the involved semantics of some iptables rules.
+Because our efforts were mostly targeted at having a feature-full
+implementation that can take a real world iptables deployment and return a SEFL
+model, there is still room for optimization in terms of the generated SEFL
+code.  One key observation is that most of the verification time is spent in
+the underlying satisfiability solver.  It is the main source of memory
+consumption too.  Therefore, fine-tuning our code to generate only the needed
+conditions on each execution path (or as close to that as possible) can
+dramatically speed up symbolic execution.  However, this is by itself a very
+hard problem considering the involved semantics of some iptables rules.
 
 In addition to that, further integration testing needs to be performed.  In
 this thesis, we limited our tests mostly to synthetic rules which might miss

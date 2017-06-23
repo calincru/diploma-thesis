@@ -681,7 +681,7 @@ existence is twofold:
     the rules in a large chain. An example is a chain which only does SNAT, and
     the last rule of the POSTROUTING chain simply jumps to it.  In this way, we
     can short-circuit the traversal of this chain (i.e. \hltexttt{-j ACCEPT})
-    for traffic that need not be SNAT'ed.
+    for traffic that need not be SNAT-ed.
 \end{itemize}
 
 \paragraph{Rules.}
@@ -758,7 +758,7 @@ netfilter adds three more \textbf{virtual} states to be used by iptables:
   \item \UNTRACKED.  A state explicitly set in the raw table for untracked
     traffic, as shown above.
   \item \SNAT.  A state set for connections that have their packets Source
-    NAT'ed by this machine.
+    NAT-ed by this machine.
   \item \DNAT.  A state set for connections for which this machine performs
     Destination NAT (e.g. port forwarding).
 \end{itemize}
