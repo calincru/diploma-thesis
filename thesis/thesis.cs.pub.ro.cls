@@ -68,6 +68,7 @@
 % Added by me
 %%%%%%%%%%%%%%
 % Nicer code listings
+\usepackage[export]{adjustbox}
 \usepackage[ruled,vlined]{algorithm2e}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage[shortlabels, inline]{enumitem}
@@ -81,6 +82,7 @@
 \usepackage{minted}
 \usepackage{nth}
 \usepackage{parcolumns}
+\usepackage{filecontents,pgfplots}
 \usepackage{soul}
 \usepackage{tabularx}
 \usepackage{wrapfig}
@@ -296,7 +298,7 @@
 \usepackage{multicol}
 
 % suport for subfloats
-\usepackage{subfig}
+\usepackage{subfigure}
 
 % booktabs (professional tables)
 \usepackage{booktabs}

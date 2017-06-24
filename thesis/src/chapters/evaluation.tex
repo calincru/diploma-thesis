@@ -172,6 +172,54 @@ Things to say:
 * tables/graphs
 
 \bigskip
+\begin{minipage}[t]{.5\textwidth}
+  \centering
+
+  \pgfplotstableread{src/data/verification-by-rule-no.dat}{\ruleno}
+  \begin{tikzpicture}[scale=0.9]
+    \begin{axis}[
+        xmode=log,
+        ymin=0,
+        ymax=100,
+        xlabel=Rules,
+        ylabel=Time (s),
+        ylabel near ticks,
+        legend pos=north west,
+      ]
+      \addplot[mark=*] table [x={rules}, y={filter}] {\ruleno};
+      \addlegendentry{filter};
+
+      \addplot[mark=square*,color=red] table [x={rules}, y={full}] {\ruleno};
+      \addlegendentry{full};
+    \end{axis}
+  \end{tikzpicture}
+
+  \captionsetup{justification=centering}
+  \captionof{figure}{Verification time by chain size.}
+  \label{fig:rules-time}
+\end{minipage}
+~
+\begin{minipage}[t]{.5\textwidth}
+  \centering
+
+  \pgfplotstableread{src/data/verification-by-network-depth.dat}{\ruleno}
+  \begin{tikzpicture}[scale=0.9]
+    \begin{axis}[
+        ymin=0,
+        ymax=100,
+        xlabel=Network depth,
+        yticklabels={,,},
+        legend pos=north west,
+      ]
+    \end{axis}
+  \end{tikzpicture}
+
+  \captionsetup{justification=centering}
+  \captionof{figure}{Verification time by network depth.}
+  \label{fig:depth-time}
+\end{minipage}
+
+\bigskip
 
 Besides these script-generated configurations, we have also run SymNet on a
 model of a Neutron L3 agent\footnote{It is essentially a router that uses the

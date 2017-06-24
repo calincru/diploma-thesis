@@ -233,15 +233,16 @@ construction of the symbolic execution tree
 
   \item We assume that the \hltexttt{max3} function can be called with any
     integer arguments.  Thus, its formal parameters \pa{}, \pb{} and \pc{} are
-    the input of this symbolic execution; they are assigned (pure)
-    \emph{symbolic values} denoted by Greek letters $\alpha$, $\beta$ and
-    $\gamma$, and together constitute the initial state (i.e. the root node in
-    the symbolic execution tree).  Implementation-wise, symbolic values can be
-    represented as a full range of their corresponding types on the machine
-    model that is targeted (e.g. $[-2.147.483.648; +2.147.483.647]$ for a
-    4-bytes signed integer).
+    the input of this symbolic execution; they are assigned
+    pure\footnote{\emph{Pure} in this context is synonymous with
+    \emph{unconstrained}.} \emph{symbolic values} denoted by Greek letters
+    $\alpha$, $\beta$ and $\gamma$, and together constitute the initial state
+    (i.e. the root node in the symbolic execution tree).  Implementation-wise,
+    symbolic values can be represented as a full range of their corresponding
+    types on the machine model that is targeted (e.g. $[-2.147.483.648;
+    +2.147.483.647]$ for a 4-bytes signed integer).
 
-  \item At \textbf{line 3}, a new variable, \vmax{} is defined.  This is were
+  \item At \textbf{line 3}, a new variable, \vmax{} is defined.  This is where
     language-specific behaviour comes into play, as we use the fact that the
     value of an uninitialized variable allocated on the stack is
     unspecified\footnote{From the ISO/IEC 9899:2011 standard, informally
@@ -314,8 +315,8 @@ small example:
     analyzed program that causes path explosion, but certain types of
     instructions (i.e.  conditional branches).  This is an important remark
     which becomes meaningful when used to guide the design of a DSL (Domain
-    Specific Language)\abbrev{DSL}{Domain Specific Language}, introduced in the
-    following section.
+    Specific Language)\abbrev{DSL}{Domain Specific Language} that aims to be
+    \emph{symbolic execution friendly}, introduced in the following section.
 \end{enumerate}
 
 
@@ -558,7 +559,7 @@ instructions.
 What should the initial packet be?  The \emph{policy rule}
 (\labelindexref{Section}{sec:network-verification}) that is being verified
 should drive this choice.  For instance, if we want to ensure that an intranet
-is not reachable from the outside, we use purely symbolic packets to ensure
+is not reachable from the outside, we use pure symbolic packets to ensure
 that all possible packets are verified.  On the other hand, for more specific
 rules, such as verifying TCP reachability between two nodes, we use concrete
 values for source and destination IP addresses, as well as for protocol number,
