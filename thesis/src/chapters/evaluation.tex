@@ -164,14 +164,50 @@ implementation is correct.
 
 \section{Performance tests}
 
-Things to say:
-* tests performed:
-1. many rules, on a single filter table;
-2. many IPTRouters in line.
-* overall results
-* tables/graphs
+We use performance tests to measure verification time on synthetic models
+assumed to be correct.  What this means is that they are automatically
+generated based on some parameters (e.g. chain size, chains to populate, etc),
+and also pass our validation procedures.  They can be grouped in two classes by
+the main dimension that gets varied across each suite, and are further
+discussed in the following paragraphs.
 
-\bigskip
+\paragraph{Chain sizes.} These tests runs symbolic execution on multiple models
+by varying the number of rules in a chain.  We chose to test against the
+filter/FORWARD chain, both because of its flexibility as all matches are
+allowed here (e.g.  it is the only chain where \lstinline{--out-interface} and
+\lstinline{--in-interface} can be used simultaneously), but also because
+iptables is primarily used to implement software firewalls which make heavy use
+of this chain.
+
+The main results are shown in \labelindexref{Figure}{fig:rules-time}.  The
+\textbf{x axis} is the log-scaled number of rules, while the \textbf{y axis}
+represents verification time in seconds.  We perform this test for four
+different configurations.  The maximum number of runs is six, but it is lower
+for some of them due to memory constraints.  Also, each test is run on multiple
+generated configurations and the average time is computed to ensure robustness
+of results.
+
+We started with a configuration made up solely from the aforementioned chain,
+and using a purely symbolic packet to bootstrap symbolic execution. The result
+is summarized by the black plot.  It features a linear increase on more than a
+half of the interval, with an upper bound of 20 seconds.  This corresponds to a
+logarithmic growth with regards to the number of rules.  Towards the other end
+of the interval (200 to 1000 rules) there is a quick upsurge in its slope, but
+it still remains under the one minute threshold.
+
+The black and blue plots show similar traits, being roughly translated on the
+\emph{y axis} as a result of introducing a few more rules in other chains
+(nat/PREROUTING, mangle/PREROUTING). Essentially what happens is that instead
+of starting with a \textbf{single purely} symbolic packet as above, a
+\textbf{few constrained} packets reach the filter/FORWARD chain due to the
+traversal of the previous ones.
+
+Finally, the magenta colored plot corresponds to a scenario that mimics the
+first one, but it differs in that that it bootstraps symbolic execution with a
+\textbf{targeted} packet (a packet with a concrete destination IP address). The
+runtime gain is dramatic, which shows the importance of having a policy drive
+verification rather than exploring all possible execution outcomes.
+
 \begin{minipage}[t]{.5\textwidth}
   \centering
 
@@ -240,10 +276,37 @@ Things to say:
   \label{fig:depth-time}
 \end{minipage}
 
+\paragraph{Network depth.}  Besides how fast a chain of rules can be traversed,
+it is arguably even more important how the result of this symbolic execution
+affects the network as a whole.
+
+The less constrained the input packet and the more complex the logic abstracted
+by a device, the more packet flows might result.  This is true in general, but
+it is particularly worrisome for iptables-enabled devices due to the
+arbitrarily complicated behaviour that they can express.  That being said, all
+packet flows that leave such a device can be materialized (i.e. can result from
+a specific input packet).  This means that we do not generate unnecessary
+packets outside the scope of a device.  Therefore, to avoid the multiplicative
+effect when connecting multiple such devices, our only chance is to inject a
+more constrained packet.
+
+The results presented in \labelindexref{Figure}{fig:depth-time} show
+verification time for networks built by chaining multiple iptables-enhanced
+routers.  As motivated in the previous paragraph, we set the destination IP
+address to a concrete value to reduce the number of outbound packets.  We
+connected between 2 and 10 devices in three different configurations given by
+the number of rules in their filter/FORWARD chains.
+
+As expected, the number of chained devices decreases due to out of memory
+errors as we increase the chain size.  If for 10 rules per chain we can verify
+networks with depths up to 10 in approximately 30 seconds, when testing for the
+case of 50 rules per chain, the maximum depth drops to 6 and takes up to 100
+seconds before consuming all 32GB of RAM.
+
 \bigskip
 
-Besides these script-generated configurations, we have also run SymNet on a
-model of a Neutron L3 agent\footnote{It is essentially a router that uses the
+In addition to the script-generated configurations, we have also run SymNet on
+a model of a Neutron L3 agent\footnote{It is essentially a router that uses the
 Linux IP stack and iptables in an isolated \emph{network namespace}.  This in
 turn is the Linux terminology for the \emph{Virtual Routing and Forwarding}
 (VRF)\abbrev{VRF}{Virtual Routing and Forwarding} concept that takes the idea
@@ -253,12 +316,11 @@ Its complete iptables dump is included in
 \labelindexref{Appendix}{app:qrouter}.
 
 Exploring all possible execution paths by injecting a pure symbolic packet on
-one of its input ports takes around \textbf{25s} and \textbf{6GB} of RAM.  This
-generates 1345 packet flows.  Only 74 of them are successful.  Out of all
-failed ones only 6 are explicitly dropped.  The remaining ones are packets
-caused by internal logic of our model that cannot be materialized.  Since there
-are only two rules that might DROP packets, it becomes manageable to inspect
-those packets by hand.  Moreover, if we constrain just the destination IP
-address of the injected packet to a concrete value, symbolic execution time
-drops to \textbf{5s}.  This shows the importance of having a policy drive
-symbolic execution rather than exploring all possible execution outcomes.
+one of its input ports takes around \textbf{25 seconds} and \textbf{6GB} of
+RAM.  This generates 1345 packet flows.  Only 74 of them are successful.  Out
+of all failed ones only 6 are explicitly dropped.  The remaining ones are
+packets caused by internal logic of our model that cannot be materialized.
+Since there are only two rules that might DROP packets, it becomes manageable
+to inspect those packets by hand.  Moreover, if we constrain just the
+destination IP address of the injected packet to a concrete value, symbolic
+execution time drops to \textbf{5 seconds}.
