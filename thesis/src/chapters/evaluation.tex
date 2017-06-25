@@ -175,7 +175,11 @@ Things to say:
 \begin{minipage}[t]{.5\textwidth}
   \centering
 
-  \pgfplotstableread{src/data/verification-by-rule-no.dat}{\ruleno}
+  \pgfplotstableread{src/data/filter-rules.dat}{\rules}
+  \pgfplotstableread{src/data/filter-nat2-rules.dat}{\rulees}
+  \pgfplotstableread{src/data/filter-nat4-rules.dat}{\ruleeees}
+  \pgfplotstableread{src/data/filter-rules-targeted.dat}{\ruls}
+
   \begin{tikzpicture}[scale=0.9]
     \begin{axis}[
         xmode=log,
@@ -186,11 +190,17 @@ Things to say:
         ylabel near ticks,
         legend pos=north west,
       ]
-      \addplot[mark=*] table [x={rules}, y={filter}] {\ruleno};
+      \addplot[mark=*] table [x={rules}, y={time}] {\rules};
       \addlegendentry{filter};
 
-      \addplot[mark=square*,color=red] table [x={rules}, y={full}] {\ruleno};
-      \addlegendentry{full};
+      \addplot[mark=square*,color=red] table [x={rules}, y={time}] {\rulees};
+      \addlegendentry{filter+nat(2)};
+
+      \addplot[mark=diamond*,color=blue] table [x={rules}, y={time}] {\ruleeees};
+      \addlegendentry{filter+nat(2)+mangle(4)};
+
+      \addplot[mark=triangle*,color=magenta] table [x={rules}, y={time}] {\ruls};
+      \addlegendentry{filter (targeted)};
     \end{axis}
   \end{tikzpicture}
 
@@ -202,7 +212,10 @@ Things to say:
 \begin{minipage}[t]{.5\textwidth}
   \centering
 
-  \pgfplotstableread{src/data/verification-by-network-depth.dat}{\ruleno}
+  \pgfplotstableread{src/data/network-depth10.dat}{\depthone}
+  \pgfplotstableread{src/data/network-depth20.dat}{\depthtwo}
+  \pgfplotstableread{src/data/network-depth50.dat}{\depthfive}
+
   \begin{tikzpicture}[scale=0.9]
     \begin{axis}[
         ymin=0,
@@ -211,6 +224,14 @@ Things to say:
         yticklabels={,,},
         legend pos=north west,
       ]
+      \addplot[mark=*,color=black] table [x={depth}, y={time}] {\depthone};
+      \addlegendentry{10 rules};
+
+      \addplot[mark=square*,color=red] table [x={depth}, y={time}] {\depthtwo};
+      \addlegendentry{20 rules};
+
+      \addplot[mark=triangle*,color=blue] table [x={depth}, y={time}] {\depthfive};
+      \addlegendentry{50 rules};
     \end{axis}
   \end{tikzpicture}
 
