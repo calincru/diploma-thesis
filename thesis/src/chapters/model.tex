@@ -45,7 +45,7 @@ decisions, as shown in \labelindexref{Figure}{fig:iptables-1}.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/iptables-1}
+  \includegraphics[scale=0.5]{assets/img/iptables-1}
   \caption[iptables model (I): Separated routing decisions.]{iptables model
   (I): Separated routing decisions.  Straight arrows correspond to directed
   edges in our network model, while dotted-arrows correspond to possible
@@ -101,7 +101,7 @@ model chain traversal. The resulting schema is shown in
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.45]{src/img/iptables-2}
+  \includegraphics[scale=0.45]{assets/img/iptables-2}
   \caption[iptables model (II): Incorporated chain virtual devices.]{iptables
   model (II): Incorporated chain virtual devices.  The purple squares are
   Iptables Virtual Devices (IVDs) and they abstract chain traversal logic.}
@@ -132,7 +132,7 @@ Therefore, we can improve our model by splitting each chain IVD as shown in
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/iptables-2-composition}
+  \includegraphics[scale=0.5]{assets/img/iptables-2-composition}
   \caption{Concrete (per-table) chains constitute a processing step.}
   \label{fig:iptables-2-composition}
 \end{figure}
@@ -208,7 +208,7 @@ the user chain has been made.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.6]{src/img/iptables-user-chains}
+  \includegraphics[scale=0.6]{assets/img/iptables-user-chains}
   \caption[Control flow of user-defined chains in iptables.]{Control flow of
   user-defined chains in iptables, featuring the \RETURN target.  Following the
   function analogy, \texttt{CHAIN1} here can be interpreted as a function that
@@ -234,7 +234,7 @@ result, as pointed out by the dashed brackets.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.6]{src/img/splitting-rules}
+  \includegraphics[scale=0.6]{assets/img/splitting-rules}
   \caption[Splitting rules in a chain on boundary rules.]{Splitting rules in a
   chain on boundary rules.  A boundary rule is a rule that might jump to a
   user-defined chain.}
@@ -287,7 +287,7 @@ shown in \labelindexref{Figure}{fig:chain-internal}.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/chain-internal}
+  \includegraphics[scale=0.5]{assets/img/chain-internal}
   \caption[Internal organization of a chain IVD.]{Internal organization of a
   chain IVD.  It has one input port, one accept port, one drop port, a number
   of jump ports equal to the number of rules that might jump to user chains,
@@ -366,7 +366,7 @@ protocol is TCP.
 
 \begin{minipage}{.6\textwidth}
 \begin{listing}[H]
-  \sourcecode{scala}{src/code/nat-reply-sefl.scala}
+  \sourcecode{scala}{assets/code/nat-reply-sefl.scala}
   \caption{Sample SEFL code showing how reply packets are automatically
   rewritten in NAT-ed TCP connections.}
   \label{lst:nat-reply-sefl}
@@ -375,7 +375,7 @@ protocol is TCP.
 \begin{minipage}{.36\textwidth}
   \centering
   % \captionsetup{justification=centering}
-  \includegraphics[scale=0.3]{src/img/chain-internal-initializer}
+  \includegraphics[scale=0.3]{assets/img/chain-internal-initializer}
   \captionof{figure}[Updated chain IVD model to accomodate the Initializer
   component.]{Updated chain IVD model to accomodate the Initializer component.}
   \label{fig:chain-internal-initializer}
@@ -429,7 +429,7 @@ result is shown in \labelindexref{Figure}{fig:conntrack-chain}.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/conntrack-chain}
+  \includegraphics[scale=0.5]{assets/img/conntrack-chain}
   \caption[Element modelling conntrack transitions in the processing
   stack.]{Element modelling conntrack transitions in the processing stack.  The
   OUTPUT chain is analogous.}
@@ -474,7 +474,7 @@ to.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/nat-global-state}
+  \includegraphics[scale=0.5]{assets/img/nat-global-state}
   \caption[Connection is rejected by NAT appliance due to no available ports
   remaining.]{Connection is rejected by NAT appliance due to no available ports
   remaining. The SNAT rule gives a range with only two ports which makes the
@@ -498,7 +498,7 @@ simply cannot be \emph{related} by our network description language.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/related-state}
+  \includegraphics[scale=0.5]{assets/img/related-state}
   \caption{A control (established) connection starts a new data (related)
   connection.}
   \label{fig:related-state}
@@ -533,7 +533,7 @@ outbound traffic.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.4]{src/img/local-process-out}
+  \includegraphics[scale=0.4]{assets/img/local-process-out}
   \caption[Exposing the output port of the local process VD.]{Exposing the
   output port of the local process VD to allow injecting packets on it, and,
   thus, simulating locally originated traffic.}

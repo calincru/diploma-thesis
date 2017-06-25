@@ -56,7 +56,7 @@ structure of a compiler too; it features three separate, well-defined phases:
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/high-level-design}
+  \includegraphics[scale=0.5]{assets/img/high-level-design}
   \caption{High-level design of \TOOL.}
   \label{fig:high-level-design}
 \end{figure}
@@ -88,7 +88,7 @@ core AST hierarchy.
   \centering
   % \captionsetup{justification=centering}
 
-  \includegraphics[scale=0.5]{src/img/ipt-hierarchy}
+  \includegraphics[scale=0.5]{assets/img/ipt-hierarchy}
   \caption[The core class hierarchy in \TOOL.]{The core class hierarchy in
   \TOOL.  Interfaces \emph{Target} and \emph{Match} are the ones that must be
   subclassed when adding extensions.  It is also indicated that a
@@ -102,7 +102,7 @@ core AST hierarchy.
 \begin{figure}[h]
   \centering
 
-  \includegraphics[scale=0.55]{src/img/virtdev-hierarchy}
+  \includegraphics[scale=0.55]{assets/img/virtdev-hierarchy}
   \caption[The class hierarchy that defines the model template part in
   \TOOL.]{The class hierarchy of the model template part in \TOOL. Besides the
   abstract base class \emph{VirtualDevice}, there are three other classes
@@ -179,7 +179,7 @@ de-sugars into repeated applications of the \hlmath{$>>=$} operator (called
   (return Nil, the empty list).  For \emph{some} (line 7) it would be \emph{one
   \textbf{T needs} to be parsed; then, maybe parse some others.}}
   \label{lst:combinators}
-  \sourcecode{scala}{src/code/combinators.scala}
+  \sourcecode{scala}{assets/code/combinators.scala}
 \end{listing}
 
 iptables defines a grammar only for rules because chains and tables are managed
@@ -266,7 +266,7 @@ The real code that accomplishes what we have just described is presented in
   for extensions) that exceeds 15 lines of code, which is an indication of the
   effectiveness of our parsing framework in simplifying our work.}
   \label{lst:rule-parser}
-  \sourcecode{scala}{src/code/rule-parser.scala}
+  \sourcecode{scala}{assets/code/rule-parser.scala}
 \end{listing}
 
 

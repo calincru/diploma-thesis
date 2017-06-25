@@ -52,7 +52,7 @@ successful paths output by symbolic execution.
   Networks} lecture quiz.  Notice that Scala already makes policy specification
   easy to understand and express owing to its relaxed syntax rules.}
   \label{lst:unreachable-rule}
-  \sourcecode{scala}{src/code/simple-nat.scala}
+  \sourcecode{scala}{assets/code/simple-nat.scala}
 \end{listing}
 
 This example is intended to show how a network administrator would express
@@ -70,7 +70,7 @@ fully-fledged, end-to-end one, we use a network topology as shown in
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/source-nating}
+  \includegraphics[scale=0.5]{assets/img/source-nating}
   \caption{Generic network configuration used to test various stateful
   functions.}
   \label{fig:source-nating}
@@ -136,7 +136,7 @@ that reaches the local process and its ctstate field is ESTABLISHED}.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/state-switch}
+  \includegraphics[scale=0.5]{assets/img/state-switch}
   \caption[Network model built to test connection tracking.]{Network model
   built to test connection tracking. Fields in bold font are the ones modified
   in the last step.}
@@ -175,10 +175,10 @@ Things to say:
 \begin{minipage}[t]{.5\textwidth}
   \centering
 
-  \pgfplotstableread{src/data/filter-rules.dat}{\rules}
-  \pgfplotstableread{src/data/filter-nat2-rules.dat}{\rulees}
-  \pgfplotstableread{src/data/filter-nat4-rules.dat}{\ruleeees}
-  \pgfplotstableread{src/data/filter-rules-targeted.dat}{\ruls}
+  \pgfplotstableread{assets/data/filter-rules.dat}{\rules}
+  \pgfplotstableread{assets/data/filter-nat2-rules.dat}{\rulees}
+  \pgfplotstableread{assets/data/filter-nat4-rules.dat}{\ruleeees}
+  \pgfplotstableread{assets/data/filter-rules-targeted.dat}{\ruls}
 
   \begin{tikzpicture}[scale=0.9]
     \begin{axis}[
@@ -212,9 +212,9 @@ Things to say:
 \begin{minipage}[t]{.5\textwidth}
   \centering
 
-  \pgfplotstableread{src/data/network-depth10.dat}{\depthone}
-  \pgfplotstableread{src/data/network-depth20.dat}{\depthtwo}
-  \pgfplotstableread{src/data/network-depth50.dat}{\depthfive}
+  \pgfplotstableread{assets/data/network-depth10.dat}{\depthone}
+  \pgfplotstableread{assets/data/network-depth20.dat}{\depthtwo}
+  \pgfplotstableread{assets/data/network-depth50.dat}{\depthfive}
 
   \begin{tikzpicture}[scale=0.9]
     \begin{axis}[

@@ -135,7 +135,7 @@ modelling/verification techniques which have been considered over time are:
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/control-data}
+  \includegraphics[scale=0.5]{assets/img/control-data}
   \caption{Data plane verification vs. control plane \emph{and} data plane
   verification.}
   \label{fig:control-data-verif}
@@ -172,7 +172,7 @@ device: its data plane (\labelindexref{Figure}{fig:data-plane-snapshot}).
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.3]{src/img/data-plane-snapshot}
+  \includegraphics[scale=0.3]{assets/img/data-plane-snapshot}
   \caption{Data plane/control plane decoupling.}
   \label{fig:data-plane-snapshot}
 \end{figure}
@@ -258,7 +258,7 @@ construction of the symbolic execution tree
 
 \begin{minipage}{.45\textwidth}
 \begin{listing}[H]
-  \sourcecode{c}{src/code/simple-c.c}
+  \sourcecode{c}{assets/code/simple-c.c}
   \caption{Simple C function used to visualize symbolic execution.}
   \label{lst:simple-c}
 \end{listing}
@@ -266,7 +266,7 @@ construction of the symbolic execution tree
 \begin{minipage}{.45\textwidth}
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.55]{src/img/symb-tree}
+  \includegraphics[scale=0.55]{assets/img/symb-tree}
   \captionof{figure}{Symbolic execution tree for the C function in
     \labelindexref{Listing}{lst:simple-c}.}
   \label{fig:simple-tree}
@@ -344,7 +344,7 @@ network~\cite{stoenescu2013symnet}.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.6]{src/img/symbolic-packet}
+  \includegraphics[scale=0.6]{assets/img/symbolic-packet}
   \caption{Visualization of a symbolic integer value and a symbolic packet.}
   \label{fig:symbolic-packet}
 \end{figure}
@@ -374,7 +374,7 @@ stored in each stateful device it traverses.
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.6]{src/img/snat-example}
+  \includegraphics[scale=0.6]{assets/img/snat-example}
   \caption{Packet flow during connection initiation and reply while behind a
   NAT appliance.}
   \label{fig:snat-example}
@@ -502,7 +502,7 @@ based on its routing table (\labelindexref{Figure}{fig:router-model}).
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/router-model}
+  \includegraphics[scale=0.5]{assets/img/router-model}
   \sethlcolor{mathgray}
   \caption[Modelling a simple forwarding router.]{Modelling a simple router
   that only forwards packets based on its routing table. The model is given by
@@ -613,7 +613,7 @@ further extended by users, as depicted in
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.6]{src/img/iptables-hierarchy}
+  \includegraphics[scale=0.6]{assets/img/iptables-hierarchy}
   \caption[A visualization of the tables/chains hierarchy in netfilter.]{A
   visualization of the tables/chains hierarchy in netfilter. Note that there is
   at least one more table, \emph{security}, that is not included here. Also,
@@ -661,7 +661,7 @@ be applied (\labelindexref{Figure}{fig:iptables-organization}).  There are 5
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.5]{src/img/iptables-organization}
+  \includegraphics[scale=0.5]{assets/img/iptables-organization}
   \caption[A flowgraph showing the processing stack in netfilter/iptables.]{A
   flowgraph showing the usual processing stack in netfilter/iptables. The part
   with a yellow background is meaningful only for locally delivered or locally
