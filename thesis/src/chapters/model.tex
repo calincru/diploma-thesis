@@ -48,9 +48,9 @@ decisions, as shown in \labelindexref{Figure}{fig:iptables-1}.
   \includegraphics[scale=0.5]{assets/img/iptables-1}
   \caption[iptables model (I): Separated routing decisions.]{iptables model
   (I): Separated routing decisions.  Straight arrows correspond to directed
-  edges in our network model, while dotted-arrows correspond to possible
-  \emph{Forward} instructions directing traffic on those paths. Note that it is
-  important to assign unique port names because there are no name scopes;
+  edges in our network model, while dotted-arrows correspond to \emph{Forward}
+  instructions directing traffic on those paths. Note that it is important to
+  assign unique port names because there are no name scopes;
   implementation-wise, this is achieved by prefixing the \emph{role} of the
   port (e.g.  \emph{in}, \emph{out}) by the unique name of the \emph{virtual
   device} it belongs to.}
@@ -72,20 +72,21 @@ out of three of them has changed.  It is easier to see this if we focus on the
 one for locally generated packets.  We notice that its single output port is
 connected to the input port of the \emph{egress} one, which means that all
 packets that enter it will follow that path.  Thus, it does not capture the
-usual routing decision behaviour which simply forwards packets to output ports
-based on some logic (i.e. destination IP and routing table).  The same applies
-to \emph{ingress} which only partitions packets based on whether they should be
-delivered locally or not.  It turns out that this new behaviour is essential to
-iptables, to enable matching against the output interface in the
-FORWARD/POSTROUTING chains, or to allow redirecting traffic in nat/OUTPUT. It
-is usually implemented by storing the decision (output port) instead of
-forwarding packets based on it.
+usual routing decision behaviour which forwards packets to \textbf{multiple}
+output ports based on some logic (i.e. destination IP and routing table).  The
+same applies to \emph{ingress} which only partitions packets based on whether
+they should be delivered locally or not.  It turns out that this new behaviour
+is essential to iptables in order to enable matching against the output
+interface in the FORWARD/POSTROUTING chains, or to allow redirecting traffic in
+nat/OUTPUT.  It is usually implemented by storing the decision (output port)
+instead of forwarding packets based on it.
 
 As simple as this step might be, it still corresponds to a valid iptables
 configuration: the \emph{void} one.  This is a valuable remark because it
 allows us to validate future, more complex versions of the model by comparing
 their output when all chains/tables are empty to that of this
-\emph{featureless} one (a form of \textbf{regression testing}).
+\emph{featureless} one.  This is essentially a form of \textbf{regression
+testing}.
 
 \bigskip
 
@@ -112,12 +113,12 @@ The new virtual devices are called \textbf{Iptables Virtual Devices}
 (IVD)\abbrev{IVD}{Iptables Virtual Devices} and have the distinctive feature
 that always have one input port and two output ports: an output port
 corresponding to \emph{accepting} packets, whether modified or not, and another
-one for \emph{dropping} packets, which is especially useful when modelling the
-filter table.  In \labelindexref{Figure}{fig:iptables-2}, the former
+one for \emph{dropping} packets, which is particularly useful when modelling
+the filter table.  In \labelindexref{Figure}{fig:iptables-2}, the former
 corresponds to the output ports (blue circles) of IVDs (purple squares) which
 are linked to the next virtual device in the processing stack.  On the other
-hand, the \emph{dropping} ports are not connected to any other ports and have a
-SEFL \hltexttt{Fail} instruction associated with them.
+hand, the \emph{dropping} ports are not connected to any other ports and are
+assigned a SEFL \hltexttt{Fail} instruction.
 
 So what does this new augmented model buy us?  Firstly, as already mentioned,
 it is closer (at least from a high-level perspective for now) to the internal
@@ -167,7 +168,7 @@ straightforward way of doing this.
 It is possible to express this algorithm in SEFL.  However, there are two
 problems with it:
 \begin{itemize}
-  \item It \textbf{ignores} a couple of essential features in iptables (e.g.
+  \item It \textbf{ignores} a couple of essential features of iptables (e.g.
     jumping to user-defined chains).  Thus,
     \labelindexref{Figure}{fig:iptables-2}, even though correct in terms of the
     abstractions it makes, hides a couple of rather involved functionality.
@@ -244,9 +245,9 @@ result, as pointed out by the dashed brackets.
 How do we model this new internal structure of a chain IVD using SEFL?
 Firstly, by decomposing its previously unified logic into multiple smaller IVDs
 called \textbf{contiguous IVDs}. Each one of these new virtual devices that are
-part of up a chain IVD implements the simple traversal algorithm presented in
-the previous section for a sublist of rules.  Furthermore, to do this, it turns
-out that we do not need to separate boundary rules from the sublist that
+part of a chain IVD implements the simple traversal algorithm presented in the
+previous section for a sublist of rules.  Furthermore, to do this, it turns out
+that we do not need to separate boundary rules from the sublist that
 \textbf{precede} them.  This is indicated via bold brackets
 \labelindexref{Figure}{fig:splitting-rules}.  This separation is not needed
 because our splitting guarantees that the last rule in the previous sublist
@@ -261,7 +262,7 @@ we split only \textbf{after} boundary rules because that is the point we might
 \textbf{need to return} to.
 
 Besides organizing rules on contiguous IVDs, we also need to link them
-together, such that if no rule matches in a contiguous IVD, packets are
+together, such that if no rule in a contiguous IVD matches, packets are
 forwarded to the next one.  Finally, we need to dispatch as part of our SEFL
 model both input and returned packets, as follows:
 \begin{itemize}
@@ -286,19 +287,19 @@ shown in \labelindexref{Figure}{fig:chain-internal}.
 
 \begin{figure}[h]
   \centering
-  \captionsetup{justification=centering}
+  % \captionsetup{justification=centering}
   \includegraphics[scale=0.5]{assets/img/chain-internal}
   \caption[Internal organization of a chain IVD.]{Internal organization of a
   chain IVD.  It has one input port, one accept port, one drop port, a number
   of jump ports equal to the number of rules that might jump to user chains,
-  and a variable (but still static) number of backlinks, that corresponds to
-  the chains that might jump to this one.  Each \textbf{contiguous IVD} has 1
-  input and 5 outputs: one for \texttt{ACCEPT} (green), one for \texttt{DROP}
-  (skipped due to lack of space), one for forwarding packets to the next
-  contiguous IVD (yellow; for the last one it is given by the chain policy),
-  one for jumping to a user chain (magenta; only in the last rule of that
-  sublist of rules), and, finally, one for returning to the caller chain (blue;
-  managed by \textbf{OutputTagDispatcher}).}
+  and a number of backlinks that corresponds to the chains that might jump to
+  this one.  Each \textbf{contiguous IVD} has 1 input and 5 outputs: one for
+  \texttt{ACCEPT} (green), one for \texttt{DROP} (not shown due to lack of
+  space), one for forwarding packets to the next contiguous IVD (yellow; for
+  the last one it is given by the chain policy), one for jumping to a user
+  chain (magenta; only in the last rule of that sublist of rules), and,
+  finally, one for returning to the caller chain (blue; managed by
+  \textbf{OutputTagDispatcher}).}
   \label{fig:chain-internal}
 \end{figure}
 
@@ -440,14 +441,14 @@ result is shown in \labelindexref{Figure}{fig:conntrack-chain}.
 
 \section{Limitations}\label{sec:limitations}
 Our model is built to mimic the netfilter implementation when stripping it to
-the bare minimum that deals with packet flows.  This should be of no surprise
-as it is one of the core design principles behind SEFL and SymNet: focus
-only on execution paths in the original code that are tied to at least one
-flow, and ignore boundary cases (i.e. out-of-memory errors, memory corruption,
-etc).
+the bare minimum that deals with packet flows only.  This should be of no
+surprise as it is one of the core design principles behind SEFL and SymNet:
+focus only on execution paths in the original code that are tied to at least
+one flow, and ignore boundary cases (i.e. out-of-memory errors, memory
+corruption, etc).
 
 This also means that we inherit all the modelling limitations of our toolset.
-The most important ones have already been touched upon in
+The most important ones have already been touched on in
 \labelindexref{Section}{sec:symnet-sefl}.  In the following paragraphs we
 analyze the way these limitations reflect on our iptables model.
 
@@ -462,8 +463,9 @@ instance, for a rule such as \hltexttt{-s 10.0.0.0/8 -j SNAT --to-source
 1.1.1.1}, a NAT device guarantees that each source address belonging to the
 specified network gets a different port number.  More than that, it can start
 rejecting upstream traffic once the total number of simultaneous connections is
-reached.  Note that this might happen due to a threshold imposed by the device
-rather than consuming the entire port range (implicit in this rule).
+reached (\labelindexref{Figure}{fig:nat-global-state}).  Note that this might
+happen due to a threshold imposed by the device rather than consuming the
+entire port range (implicit in this rule).
 
 However, that is a boundary case, not a rule that a network administrator would
 be able to enforce nor want to.  In other words, if host \textbf{A} cannot
@@ -485,12 +487,13 @@ to.
 \end{figure}
 
 \paragraph{\RELATED (connection state).}
-In \labelindexref{Section}{sec:model-conntrack} we left unmodelled some of the
-states a connection can be.  In particular, the \RELATED state is one which
-comes up often in iptables rules.  Informally, a connection is considered
-\RELATED when it is \textbf{caused} by another established one.  This includes
-all \emph{data connections} which are started as part of a protocol that have a
-dedicated \emph{control connection}.
+In \labelindexref{Section}{sec:model-conntrack} we did not show how to model
+the transitions to some of the supported connection states.  In particular, the
+\RELATED state is one which comes up often in iptables rules.  Informally, a
+connection is considered \RELATED when it is \textbf{caused} by another
+established one.  This includes all \emph{data connections} which are started
+as part of a protocol that have a separate, dedicated \emph{control
+connection}.
 
 The reason it cannot be modelled stems from the \textbf{flows independence}
 design assumption: the two connections correspond to two different flows which
@@ -520,9 +523,9 @@ An alternative inspired by how entire networks are modelled with SEFL is to
 focus only on simplified application-specific behaviours.  In fact, our design
 allows embedding such user-specified custom logic.  For instance, a very raw
 model of a server would only swap source and destination addresses and forward
-the packet to the OUTPUT chain.  Alternatively, the simplest local process
-would act as a \emph{sink}, not doing anything with incoming packets which
-causes symbolic execution to consider that flow a success.
+the packet to the OUTPUT chain.  Alternatively, the simplest local process can
+act as a \emph{sink}, not doing anything with incoming packets which causes
+symbolic execution to consider that flow stuck.
 
 Additionally, a design choice we made to allow bootstrapping symbolic execution
 with traffic originating from an iptables-enabled device is to \textbf{expose}
@@ -552,9 +555,9 @@ continued by adding support for user-defined chains and the \RETURN target.
 Together, they introduce a new traversal order that resembles function calls in
 procedural languages.  Next, we dedicated two sections to show that the
 \emph{nat} table and \emph{connection tracking} need dedicated logic.  Once we
-solved (some of) the issues they introduced, we can finally assert that the
-resulting model is the final one.  We followed that up with a discussion about
-its limitations.
+solved (some of) the issues they introduced, we were finally able to assert
+that the resulting model is the final one.  We followed that up with a
+discussion about its limitations.
 
 In the next two chapters we present the internal design and implementation
 choices behind the \TOOL tool, and evaluate the models we construct from
