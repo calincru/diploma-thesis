@@ -1,6 +1,6 @@
 \chapter{Background}\label{chapter:background}
 
-This chapter introduces the concepts which form the building blocks of our
+This chapter introduces the concepts that make the building blocks for our
 iptables model, making use of the extensive work conducted by Stoenescu et
 al.~\cite{stoenescu2013symnet, stoenescu2016symnet}
 
@@ -15,7 +15,7 @@ features.
 \section{Network verification}\label{sec:network-verification}
 Formal verification is the act of proving or disproving the correctness of
 intended algorithms underlying a system with respect to a certain formal
-specification or property, using formal methods of
+specification or property using formal methods of
 mathematics~\cite{sanghavi2010formal}. Network verification is merely formal
 verification tailored for network-related questions.
 
@@ -72,12 +72,12 @@ Notice the \hlmath{$correctness \implies property$} form, instead of
 rules, if we admit that the policy is a conjunction of rules (i.e. properties),
 \hlmath{$P = r_1 \wedge r_2 \wedge ... \wedge r_n$}, and we prove
 \hlmath{$r_i$, $\mbox{for } i = 1,...,n$}, then
-\hlmath{$correctness \implies P$}.  Since the reverse implication is implicit,
-this yields the same equivalence.  Therefore, by decomposing the policy into
-its defining rules not only do we get an easier to implement verification
-system, but we also reach the same theoretical result, provided that all rules
-are known.  In addition to that, policy specification is an iterative process
-in practice, making this approach even more desirable.
+\hlmath{$correctness \implies P$}.  Since the reverse implication is true by
+definition, this yields the same equivalence.  Therefore, by decomposing the
+policy into its defining rules not only do we get an easier to implement
+verification system, but we also reach the same theoretical result, provided
+that all rules are known.  In addition to that, policy specification is an
+iterative process in practice, making this approach even more desirable.
 
 \paragraph{Modelling and verification procedure.}
 The other two essential ingredients needed to apply formal verification to
@@ -93,7 +93,8 @@ holds. Another technique which has been thoroughly explored is
 \textbf{reduction to SAT} (AntEater~\cite{mai2011debugging}).  However, for
 large models that result even from moderately sized networks the aforementioned
 approaches render the verification problem intractable.  Other
-modelling/verification techniques which have been considered over time are:
+modelling/verification techniques which have been considered over time are the
+following:
 \begin{itemize}
   \item Modelling the network as a \textbf{distributed system}, where each
     network element (i.e. computing node) has its own corresponding \emph{C
@@ -141,7 +142,7 @@ modelling/verification techniques which have been considered over time are:
   \label{fig:control-data-verif}
 \end{figure}
 
-It is also worth briefly introducing one of the principal alternatives to
+It is also worth briefly introducing one of the primary alternatives to
 model-based static network verification, \textbf{Dynamic Network Testing} (also
 known as \emph{packet injection}). As a testing technique, rather than a formal
 verification one, it runs on the actual network infrastructure in a specially
@@ -213,7 +214,7 @@ problem that caused the unexpected rule in the data plane.
 
 Symbolic execution is a means of statically analyzing a program in order to
 find the inputs that cause certain parts of it to be executed.  It results in a
-tree with each node representing a possible state in its execution and edges
+tree with each node representing a possible state in its execution, and edges
 corresponding to state transitions caused by executing the next instruction on
 that specific path.  Therefore, execution paths in the analyzed program
 correspond to state chains starting from the root of the symbolic execution
@@ -234,15 +235,15 @@ construction of the symbolic execution tree
   \item We assume that the \hltexttt{max3} function can be called with any
     integer arguments.  Thus, its formal parameters \pa{}, \pb{} and \pc{} are
     the input of this symbolic execution; they are assigned
-    pure\footnote{\emph{Pure} in this context is synonymous with
+    pure\footnote{In this context, \emph{pure} is synonymous with
     \emph{unconstrained}.} \emph{symbolic values} denoted by Greek letters
     $\alpha$, $\beta$ and $\gamma$, and together constitute the initial state
     (i.e. the root node in the symbolic execution tree).  Implementation-wise,
-    symbolic values can be represented as a full range of their corresponding
-    types on the machine model that is targeted (e.g. $[-2.147.483.648;
+    symbolic values can be represented as full ranges given by their underlying
+    types on the machine model that is targeted (e.g.  $[-2.147.483.648;
     +2.147.483.647]$ for a 4-bytes signed integer).
 
-  \item At \textbf{line 3}, a new variable, \vmax{} is defined.  This is where
+  \item At \textbf{line 3}, a new variable, \vmax{}, is defined.  This is where
     language-specific behaviour comes into play, as we use the fact that the
     value of an uninitialized variable allocated on the stack is
     unspecified\footnote{From the ISO/IEC 9899:2011 standard, informally
@@ -266,7 +267,7 @@ construction of the symbolic execution tree
 \begin{minipage}{.45\textwidth}
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.55]{assets/img/symb-tree}
+  \includegraphics[scale=0.49]{assets/img/symb-tree}
   \captionof{figure}{Symbolic execution tree for the C function in
     \labelindexref{Listing}{lst:simple-c}.}
   \label{fig:simple-tree}
@@ -291,16 +292,16 @@ construction of the symbolic execution tree
     not explicitly highlighted in \labelindexref{Figure}{fig:simple-tree}.
 \end{itemize}
 
-We can derive a couple of properties of symbolic execution even from such a
+We can derive a couple of properties for symbolic execution even from such a
 small example:
 \begin{enumerate}[a)]
   \item On the \textbf{upside}, it enables \emph{invariant checking} by
     ensuring that certain properties hold in all explored states, and, thus,
-    are true irrespective of program's input.  Furthermore, it can help
-    increase code coverage\footnote{Code coverage is a measure used to
-    described the degree to which the source code of a program is executed when
-    a particular test suite runs.} by generating unit tests that explore
-    previously untouched parts of the program.
+    are true irrespective of input.  Furthermore, it can help increase code
+    coverage\footnote{Code coverage is a measure used to described the degree
+    to which the source code of a program is executed when a particular test
+    suite runs.} by generating unit tests that explore previously untouched
+    parts of the program.
 
   \item On the \textbf{downside}, it commonly leads to \textbf{path explosion},
     which is arguably its single most limiting factor. Path explosion refers to
@@ -308,14 +309,14 @@ small example:
     in the symbolic execution tree as the number of traversed \emph{conditional
     branches} in the program accumulate. Even though heuristic methods to
     reduce time and/or space have been devised (e.g. parallelizing independent
-    paths~\cite{staats2010parallel}, merging similar paths
-   ~\cite{kuznetsov2012efficient}, etc), it still remains a concern.
+    paths~\cite{staats2010parallel}, merging similar
+    paths~\cite{kuznetsov2012efficient}, etc), it still remains a concern.
 
-    That being said, it is worth noting that it is not the \emph{length} of the
-    analyzed program that causes path explosion, but certain types of
-    instructions (i.e.  conditional branches).  This is an important remark
-    which becomes meaningful when used to guide the design of a DSL (Domain
-    Specific Language)\abbrev{DSL}{Domain Specific Language} that aims to be
+    That being said, it is worth stressing that it is not the \emph{length} of
+    the analyzed program that causes path explosion, but certain types of
+    instructions: conditional branches.  This is an important remark which
+    becomes meaningful when used to guide the design of a DSL (Domain Specific
+    Language)\abbrev{DSL}{Domain Specific Language} that aims to be
     \emph{symbolic execution friendly}, introduced in the following section.
 \end{enumerate}
 
@@ -324,28 +325,30 @@ small example:
 
 SymNet and SEFL establish together the framework we use to model and verify
 large, complex, stateful networks. SymNet is a network analysis tool that
-accepts as input a (SEFL) model of the network and uses symbolic execution to
-find all possible flows that might traverse it.  SEFL is a network processing
-DSL which describes network functions as flow transformations.  Even though
-they serve conceptually different purposes, they have been designed and
-optimized to be used together.  Therefore, it is common to refer to the system
-as a whole as \textbf{SymNet}.
+accepts as input a (SEFL) model of the network which is subject to
+verification, and uses symbolic execution to find all possible packet flows
+that might traverse it.  SEFL is a network processing DSL that describes
+network functions as flow transformations.  Even though they serve conceptually
+different purposes, they have been designed and optimized to be used together.
+Therefore, it is common to refer to the system as a whole through
+\emph{``SymNet''}.
 
 The \textbf{key novelty} of this network verification system is making the
 verification procedure (that is, symbolic execution) a core part of the design
-behind the network description language it uses (and even name it).  Thus,
+behind the network description language that it uses (and even name it).  Thus,
 careful crafting of SEFL models can keep \emph{path explosion}
-(\labelindexref{Section}{sub-sec:symb-exec}) under control and achieve
-performances unreached before: it has been used to verify backbone routers with
-hundreds of thousands of prefixes in seconds~\cite{stoenescu2016symnet}, and
-has been shown to scale linearly with the size of the analyzed
-network~\cite{stoenescu2013symnet}.
+under control and achieve performances unreached before: it has been used to
+verify backbone routers with hundreds of thousands of prefixes in
+seconds~\cite{stoenescu2016symnet}, and has been shown to scale linearly with
+the size of the analyzed network~\cite{stoenescu2013symnet}.
 
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
   \includegraphics[scale=0.6]{assets/img/symbolic-packet}
-  \caption{Visualization of a symbolic integer value and a symbolic packet.}
+  \caption[Visualization of a symbolic integer value and a symbolic
+  packet]{Visualization of a symbolic integer value and a symbolic packet.
+  Stars (\textbf{*}) are used to denote symbolic fields and bits.}
   \label{fig:symbolic-packet}
 \end{figure}
 
@@ -363,13 +366,13 @@ To continue the analogy, SEFL instructions are similar to usual instructions in
 a C program.  However, in SEFL, instructions implicitly operate on the header
 fields of a single packet; that is, the memory space is a packet (or, more
 precisely, a \emph{packet flow}, as we will shortly see).  Therefore, another
-defining design aspect of SymNet is that a packet is tied to a symbolic
+defining design aspect behind SymNet is that a packet is tied to a symbolic
 execution path.
 
 Another novel capability of SymNet is modelling \textbf{stateful} network
-devices.  The way this is achieved is by adding per-flow state as additional
-dimensions in the packet header.  It includes all state that would normally be
-stored in each stateful device it traverses.
+devices.  This is achieved by adding per-flow state as additional dimensions in
+the packet header.  It includes all state information which would normally
+reside on the stateful devices that are traversed.
 
 \begin{figure}[h]
   \centering
@@ -388,11 +391,10 @@ the 5-tuples identifying address translations are stored by the NAT box, we
 model its logic in SEFL by adding this information as part of the flow. Due to
 lack of space, in this example we only include the source and the destination
 IP addresses; the star in front of these new fields helps differentiate regular
-packet headers and state-related fields \textbf{(2)}.  The reply packet is part
-of the same flow, so we make sure it keeps these fields unchanged \textbf{(3)}.
+header fields and state-related ones \textbf{(2)}.  The reply packet is part of
+the same flow, so we make sure it keeps these fields unchanged \textbf{(3)}.
 When the reply arrives at the NAT box, it uses the state fields to apply the
-reverse translation; finally, it forwards the packet to its original source
-\textbf{(4)}.
+reverse translation and forward the packet to its original source \textbf{(4)}.
 
 \bigskip
 
@@ -413,7 +415,7 @@ makes a few additional assumptions:
     other statistics. There is also no notion of flow ordering, which might
     make a difference in practice.
   \item \textbf{The network is operationally correct.} Scenarios such as memory
-    corruption and devices failing are not considered.
+    corruption and devices failing spuriously are not considered.
 \end{itemize}
 
 
@@ -421,9 +423,9 @@ makes a few additional assumptions:
 
 A \textbf{network model} described using SEFL and processed by SymNet is a
 directed graph, \hlmath{$G = (V, E)$}, with nodes \hlmath{$u\in V$}, often
-called \textbf{ports}, that have SEFL instructions associated with them, and
-edges \hlmath{$(u, v)\in E$} referred to as \textbf{links}.  Additionally, the
-following property holds: \hlmath{$\forall u\in V$, $deg^{+}(u) <= 1$}. In
+called \textbf{ports}, that have SEFL instructions associated, and edges
+\hlmath{$(u, v)\in E$} commonly referred to as \textbf{links}.  Additionally,
+the following property holds: \hlmath{$\forall u\in V$, $deg^{+}(u) <= 1$}. In
 other words, each node should have no more than one outgoing edge (i.e.
 one-to-many relationships are not allowed). Otherwise, a form of
 \textbf{implicit} non-determinism would result (i.e.  \emph{unconditional
@@ -518,8 +520,9 @@ incoming packet irrespective of the input port it arrives on, so we connect all
 input ports to an internal, hidden port, which is the input port of a
 \emph{virtual device} called \textbf{routing decision}.  It is worth mentioning
 that the same behaviour could have been achieved by assigning the instruction
-\emph{Forward($rd_1$)} to all input ports instead of adding new edges to
-our model.
+\emph{Forward($rd_1$)} to all input ports instead of adding new edges to our
+model.  Modularity and separation of concerns are some of the reasons behind
+our choice.
 
 The routing decision has an input port and forwards (dotted lines) the packet
 to exactly one output port or to the local process.  One important thing to
@@ -556,14 +559,14 @@ of keys and the set of values in this Map.  The logic expressed using SEFL is
 given as a separate data structure, mapping ports to their assigned SEFL
 instructions.
 
-What should the initial packet be?  The \emph{policy rule}
-(\labelindexref{Section}{sec:network-verification}) that is being verified
-should drive this choice.  For instance, if we want to ensure that an intranet
-is not reachable from the outside, we use purely symbolic packets to ensure
-that all possible packets are verified.  On the other hand, for more specific
-rules, such as verifying TCP reachability between two nodes, we use concrete
-values for source and destination IP addresses, as well as for protocol number,
-and leave all the rest unconstrained.
+What should the initial packet be?  The \emph{policy rule} that is being
+verified should drive this choice
+(\labelindexref{Section}{sec:network-verification}).  For instance, if we want
+to ensure that an intranet is not reachable from the outside, we use purely
+symbolic packets to ensure that all possible packets are verified.  On the
+other hand, for more specific rules, such as verifying TCP reachability between
+two nodes, we use concrete values for source and destination IP addresses, as
+well as for protocol number, and leave all the rest unconstrained.
 
 As previously mentioned, SymNet outputs an exhaustive list of flows together
 with their constraints.  If the list is not a very large one, manually looking
@@ -593,12 +596,12 @@ to re-design and improve software packages that were part of previous versions
 of the Linux kernel, such as ipchains and ipfwadm.
 
 \textbf{iptables} is the user-space command line tool used to configure the
-\emph{tables} defined by netfilter, for IPv4 traffic (hence the name). Given
+\emph{tables} defined by netfilter for IPv4 traffic (hence the name). Given
 that it is the main application used by system administrators to define rules
 for packet filtering/mangling, and having been an essential part of the initial
 project that eventually evolved into today's framework, it is common to refer
-through \emph{iptables} to the entire software stack that enables this, and use
-\emph{iptables} and \emph{netfilter} interchangeably.  In fact, by
+through \emph{``iptables''} to the entire software stack that enables this, and
+use \emph{``iptables''} and \emph{``netfilter''} interchangeably.  In fact, by
 \emph{modelling iptables} we actually mean modelling the netfilter logic that
 it triggers.
 
@@ -616,9 +619,7 @@ further extended by users, as depicted in
   \includegraphics[scale=0.6]{assets/img/iptables-hierarchy}
   \caption[A visualization of the tables/chains hierarchy in netfilter.]{A
   visualization of the tables/chains hierarchy in netfilter. Note that there is
-  at least one more table, \emph{security}, that is not included here. Also,
-  while it is possible to have rules from different tables \emph{jump} to the
-  same user-defined chain (as depicted here), it is not a good practice.}
+  at least one more table, \emph{security}, that is not included here.}
   \label{fig:iptables-hierarchy}
 \end{figure}
 
@@ -631,8 +632,8 @@ used ones are:
   \item \textbf{nat} - for one-to-many NAT, port forwarding, masquerading,
     packet redirecting
   \item \textbf{mangle} - for specialized packet alteration; one feature that
-    comes up often in practice is \emph{packet marking}, which allows
-    customized traffic handling by chains following it in the processing stack.
+    comes up often in practice is \emph{packet marking} which allows customized
+    traffic handling by chains following it in the processing stack.
 \end{itemize}
 
 The lowercase spelling of table names is part of the convention adopted by
@@ -663,10 +664,10 @@ be applied (\labelindexref{Figure}{fig:iptables-organization}).  There are 5
   \captionsetup{justification=centering}
   \includegraphics[scale=0.5]{assets/img/iptables-organization}
   \caption[A flowgraph showing the processing stack in netfilter/iptables.]{A
-  flowgraph showing the usual processing stack in netfilter/iptables. The part
-  with a yellow background is meaningful only for locally delivered or locally
-  generated packets. The one with a purple background is traversed for all
-  packets that only transit (are routed by) this machine.}
+  flowgraph showing the usual processing stack in netfilter/iptables. The
+  section on a yellow background is meaningful only for locally delivered or
+  locally generated packets. The one on a purple background is traversed for
+  all packets that only transit (are routed by) this machine.}
   \label{fig:iptables-organization}
 \end{figure}
 
@@ -716,7 +717,7 @@ target extensions.  Match extensions are \emph{activated} with the
 extensions often used in practice.
 
 
-\subsection{Relation to \emph{conntrack}}\label{sub-sec:conntrack}
+\subsection{Relation with \emph{conntrack}}\label{sub-sec:conntrack}
 
 Connection tracking (also known as \emph{the state machine}) is the mechanism
 that allows a Linux box to relate incoming packets to tracked connections.
@@ -725,8 +726,8 @@ functionality.  Firewalls that include it are generally called \emph{stateful
 firewalls}.
 
 conntrack is part of netfilter and it is embedded in the processing stack
-described in \labelindexref{Figure}{fig:iptables-organization}.  More
-precisely, it is called right after the raw table in the PREROUTING and OUTPUT
+described in \labelindexref{Figure}{fig:iptables-organization}.  To be more
+specific, it is called right after the raw table in the PREROUTING and OUTPUT
 chains.  In fact, one of the purposes of the \textbf{raw} table is to allow
 \textbf{skipping} connection tracking logic for certain traffic (i.e.
 \lstinline{-j CT --notrack}).
@@ -748,13 +749,13 @@ destination port.  It recognizes four states:
     out of memory, etc).
 \end{itemize}
 
-By itself, conntrack is simply an aggregator of connections data.  It becomes
+By itself, conntrack is simply an aggregator for connection data.  It becomes
 particularly powerful when the information it holds is used by iptables.  To do
 so, the \textbf{conntrack} match extension must be loaded (i.e.
 \lstinline{-m conntrack}).  The most common use-case is matching against the
 connection state itself (i.e. \lstinline{-m conntrack --ctstate NEW}).  In
-addition to the four states which are defined by the conntrack module,
-netfilter adds three more \textbf{virtual} states to be used by iptables:
+addition to the four states defined by the conntrack module, netfilter adds
+three more \textbf{virtual} states to be used by iptables:
 \begin{itemize}
   \item \UNTRACKED.  A state explicitly set in the raw table for untracked
     traffic, as shown above.
@@ -765,7 +766,8 @@ netfilter adds three more \textbf{virtual} states to be used by iptables:
 \end{itemize}
 
 Besides the connection state, it is also possible to match against any of the
-10 fields which form the two 5-tuples that are stored for every connection.
+10 fields which are part of the two 5-tuples that are stored for every
+connection.
 
 
 \section{Summary}

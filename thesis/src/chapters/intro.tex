@@ -11,19 +11,19 @@ networks, bring about even more complexity: they are expensive, complex to
 manage and introduce new failure modes~\cite{sherry2012making}.
 
 At the same time, more and more x86 infrastructure is being deployed for
-networking purposes. One particular direction which has gained popularity lately
-is Network Function Virtualization (NFV)\abbrev{NFV}{Network Function
-Virtualization}, a network architecture concept that unifies virtualization and
-networking by running the functionality provided by middleboxes as software on
-commodity hardware~\cite{martins2014clickos, stoenescu2015net}. The idea has
-been taken even further by operators who have spotted the potential cost
-benefits and are planning to extend their services to become cloud providers
-specialized for in-network processing~\cite{stoenescu2015net}, which is bound
-to intensify this trend.
+networking purposes. One particular direction which has gained increased
+popularity lately is Network Function Virtualization (NFV)\abbrev{NFV}{Network
+Function Virtualization}, a network architecture concept that unifies
+virtualization and networking by running the functionality provided by
+middleboxes as software on commodity hardware~\cite{martins2014clickos,
+stoenescu2015net}. The idea has been taken even further by operators who have
+spotted the potential cost benefits and are planning to extend their services
+to become cloud providers specialized for in-network
+processing~\cite{stoenescu2015net}, which is bound to intensify this trend.
 
 When speaking about running network functions on x86 hardware, we immediately
 have to turn our attention to \textbf{netfilter}, the customizable framework
-provided by the Linux kernel that offers various functions and operations for
+provided by the Linux kernel.  It offers various functions and operations for
 packet filtering, packet mangling and Network Address Translation
 (NAT)\abbrev{NAT}{Network Address Translation}, thus enabling most of the
 functions featured by dedicated firewalls. For IPv4 traffic, these functions
@@ -49,8 +49,8 @@ a tool for static network checking~\cite{stoenescu2016symnet,
 stoenescu2013symnet}.  Together, they assemble into a state-of-the-art
 framework that enables scalable verification for stateful networks.
 
-The resulting tool, naturally called \TOOL, compiles iptables deployments to
-SEFL models, and sums up to approximately 8k lines of Scala code (including
+The resulting tool, unsurprisingly called \TOOL, compiles iptables deployments
+to SEFL models, and sums up to approximately 8k lines of Scala code (including
 unit tests).  These models, in turn, can then be plugged into large networks
 and reveal configuration errors or, more generally put, policy inconsistencies.
 Therefore, it is a step forward towards the goal of verifying networks which

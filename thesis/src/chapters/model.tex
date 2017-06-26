@@ -1,6 +1,6 @@
 \chapter{Towards a model}\label{chapter:model}
 In this chapter we derive a model for an iptables-enabled device using SEFL.
-We start with a simple one, and increase its complexity and the amount of
+We start with a simple one and increase its complexity and the amount of
 details as we gradually introduce features that allow us to express more and
 more complex iptables rules.  We sum up with an overview of the limitations
 encountered along the way.
@@ -376,8 +376,9 @@ protocol is TCP.
   \centering
   % \captionsetup{justification=centering}
   \includegraphics[scale=0.3]{assets/img/chain-internal-initializer}
-  \captionof{figure}[Updated chain IVD model to accomodate the Initializer
-  component.]{Updated chain IVD model to accomodate the Initializer component.}
+  \captionof{figure}[Updated chain IVD model to accomodate the
+  \emph{Initializer} component.]{Updated chain IVD model to accomodate the
+  \emph{Initializer} component.}
   \label{fig:chain-internal-initializer}
 \end{minipage}
 
@@ -475,9 +476,9 @@ to.
   \centering
   \captionsetup{justification=centering}
   \includegraphics[scale=0.5]{assets/img/nat-global-state}
-  \caption[Connection is rejected by NAT appliance due to no available ports
-  remaining.]{Connection is rejected by NAT appliance due to no available ports
-  remaining. The SNAT rule gives a range with only two ports which makes the
+  \caption[Connection is rejected by NAT appliance because all ports are
+  consumed.]{Connection is rejected by NAT appliance because all ports are
+  consumed. The SNAT rule gives a range with only two ports which makes the
   third connection initiation to be rejected by the NAT box.  This can only be
   accomplished by keeping track of state across flows.}
   \label{fig:nat-global-state}
