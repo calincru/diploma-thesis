@@ -38,19 +38,19 @@ performed by including the Scala code too.
 \labelindexref{Listing}{lst:unreachable-rule} shows the entire test.  Between
 \textbf{lines 2-7} the nat/POSTROUTING chain is set up with two rules: one to
 match an entire private network (\lstinline{-s 192.168.1.0/24}) and the other
-one to only match a host in the  same network (\lstinline{-s 192.168.1.100}).
-Between \textbf{lines 8-13} we run symbolic execution injecting a packet with
-the source IP set to \lstinline{192.168.1.100} (line 12), starting from this
-chain's input port (lines 10-11).  Between \textbf{lines 14-19} we define the
-\emph{rewrite constrain} that we expect to take place.  Finally, at line 22 we
-\textbf{express the policy} using the custom Scala matcher
+one to only match a host from the same network (\lstinline{-s 192.168.1.100}).
+Between \textbf{lines 8-13} we run symbolic execution by injecting a packet
+with the source IP set to \lstinline{192.168.1.100} (line 12), starting from
+this chain's input port (lines 10-11).  Between \textbf{lines 14-19} we define
+the \emph{rewrite constrain} that we expect to take place.  Finally, at line 22
+we \textbf{express the policy} using the custom Scala matcher
 \emph{containConstrain} that looks up the given constrain in the list of
 successful paths output by symbolic execution.
 
 \begin{listing}[H]
   \caption{An example of a NAT misconfiguration taken from a \emph{Local Area
   Networks} lecture quiz.  Notice that Scala already makes policy specification
-  easy to understand and express owing to its relaxed syntax rules.}
+  easy to understand and express because of its relaxed syntax rules.}
   \label{lst:unreachable-rule}
   \sourcecode{scala}{assets/code/simple-nat.scala}
 \end{listing}
@@ -62,8 +62,8 @@ rule will never be matched, indicating a misconfiguration which would hopefully
 be found as a result of the policy failing.
 
 \paragraph{NAT-ed connections.}
-To take our previous SNAT configuration from a toy example that is intended to
-give a glimpse at how simple policies can be expressed in code to a
+To take our previous SNAT configuration from a toy example that is intended
+just to give a glimpse at how simple policies can be expressed in code to a
 fully-fledged, end-to-end one, we use a network topology as shown in
 \labelindexref{Figure}{fig:source-nating}.
 
@@ -95,9 +95,9 @@ input ports.  For instance:
     one more policy rule to the previous example: a packet with the reverse
     source/destination IPs should reach the input port of \emph{IP mirror 1}.
   \item To test that the nat/POSTROUTING chain is traversed \textbf{only once}
-    for a SNAT-ed connection, we add the following policy rule: the input port
-    of this particular chain is traversed only once.  The special logic for
-    skipping it otherwise is subjected to test here.
+    for a SNAT-ed connection, we add the following policy rule: any symbolic
+    execution path should pass through its input port only once.  The special
+    logic for skipping it otherwise is subjected to test here.
   \item To test that the same rule does not apply if the connection is
     initiated from the \textbf{opposite direction} (SNAT rules use source IP
     matches, in general), we inject a packet on the output port of \emph{IP
@@ -125,7 +125,7 @@ of the local process component.  As discussed at the end of
 model interface precisely for testing purposes like this one
 (\labelindexref{Figure}{fig:local-process-out}).
 
-A new metadata field is stored for each packet flow to track its connection
+A new metadata field is stored in each packet flow to track its connection
 state, intuitively called \textbf{ctstate}.  The first time a packet belonging
 to a connection is seen, its \emph{ctstate} is set to \NEW (transition
 \textbf{1 -> 2}).  Once a packet in the \textbf{reverse} direction is
@@ -138,8 +138,7 @@ that reaches the local process and its ctstate field is ESTABLISHED}.
   \captionsetup{justification=centering}
   \includegraphics[scale=0.5]{assets/img/state-switch}
   \caption[Network model used to test connection tracking.]{Network model used
-  to test connection tracking. Fields in bold font are the ones modified in the
-  last step.}
+  to test connection tracking. Fields that get modified are displayed in bold.}
   \label{fig:state-switch}
 \end{figure}
 
@@ -156,10 +155,10 @@ requires establishing a(n) (usually large) list of input packets and injecting
 them both in the real system and in its model constructed with \TOOL.  Then,
 monitor output packets in the real iptables-enabled device and try to match
 them against the exhaustive list of (symbolic) packet flows output by SymNet.
-If for some input packet there is no symbolic flow that matches the observed
-output packet, the equivalence is denied.  The reversed implication is
-obviously not necessarily true, but it increases our \emph{belief} that the
-implementation is correct.
+If for some \textbf{input packet} there is no \textbf{symbolic flow} that
+matches the observed \textbf{output packet}, the equivalence is denied.  The
+reversed implication is obviously not necessarily true, but it increases our
+\emph{belief} that the implementation is correct.
 
 
 \section{Performance tests}
@@ -171,7 +170,7 @@ and also pass our validation procedures.  They can be grouped in two classes by
 the main dimension that gets varied across each suite, and are further
 discussed in the following paragraphs.
 
-\paragraph{Chain sizes.} These tests runs symbolic execution on multiple models
+\paragraph{Chain sizes.} These tests run symbolic execution on multiple models
 by varying the number of rules in a chain.  We chose to test against the
 filter/FORWARD chain, both because of its flexibility as all matches are
 allowed here (e.g.  it is the only chain where \lstinline{--out-interface} and
@@ -300,7 +299,7 @@ the number of rules in their filter/FORWARD chains.
 As expected, the number of chained devices decreases due to out of memory
 errors as we increase the chain size.  If for 10 rules per chain we can verify
 networks with depths up to 10 in approximately 30 seconds, when testing for the
-case of 50 rules per chain, the maximum depth drops to 6 and takes up to 100
+case of 50 rules per chain the maximum depth drops to 6 and takes up to 100
 seconds before consuming all 32GB of RAM.
 
 \bigskip
