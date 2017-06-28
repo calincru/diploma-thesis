@@ -1,0 +1,62 @@
+\documentclass{beamer}
+
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{comment}
+\usepackage{array}
+
+\mode<presentation>
+{ \usetheme{Madrid} }
+
+% remove navigation symbols
+\setbeamertemplate{navigation symbols}{}
+
+% set footline
+\makeatletter
+\setbeamertemplate{footline}
+  {%
+    \begin{beamercolorbox}[ht=2.5ex,dp=1ex,%
+      leftskip=.3cm,rightskip=.3cm plus1fil]{title in head/foot}%
+      {\usebeamerfont{title in head/foot}\insertshorttitle}%
+      \hfill%
+      {\usebeamerfont{frame number}\usebeamercolor[fg]{frame
+      number}\insertframenumber~of~\inserttotalframenumber}%
+    \end{beamercolorbox}%
+  }
+\makeatother
+
+\title[Formal Analysis of iptables Configurations for Network
+Verification]{Formal Analysis of iptables Configurations for Network
+Verification}
+\institute{Faculty of Automatic Control and Computers,\\
+  University POLITEHNICA of Bucharest}
+\author[Călin Cruceru]{Călin Cruceru
+\newline{\footnotesize{Supervisor: Conf.dr.ing. Costin Raiciu}}}
+\date{July 3, 2017}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Keywords}
+\begin{columns}
+  \begin{column}{0.5\textwidth}
+    \centering
+    \begin{itemize}
+      \item network verification
+      \item iptables
+      \item symbolic execution
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.5\textwidth}
+    \centering
+    \begin{itemize}
+      \item SymNet
+      \item SEFL
+      \item Scala
+    \end{itemize}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\end{document}
