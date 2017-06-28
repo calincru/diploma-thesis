@@ -5,8 +5,11 @@
 \usepackage{comment}
 \usepackage{array}
 
+\usepackage{filecontents,pgfplots}
+\usepackage{tikz}
+
 \mode<presentation>
-{ \usetheme{Madrid} }
+{ \usetheme{Rochester} }
 
 % remove navigation symbols
 \setbeamertemplate{navigation symbols}{}
@@ -38,14 +41,103 @@ Verification}
 
 \frame{\titlepage}
 
+\begin{frame}{Motivation}
+\end{frame}
+
+\begin{frame}{Static Data Plane Verification}
+\end{frame}
+
+\begin{frame}{SymNet and SEFL}
+\end{frame}
+
+\begin{frame}{Overview of iptables}
+\end{frame}
+
+\begin{frame}{Towards a Model}
+\end{frame}
+
+\begin{frame}{Towards a Model (2)}
+\end{frame}
+
+\begin{frame}{Design and Implementation}
+\end{frame}
+
+\begin{frame}{Evaluation - Correctness}
+\end{frame}
+
+\begin{frame}{Evaluation - Performance}
+\begin{columns}
+  \begin{column}{.50\textwidth}
+    \pgfplotstableread{assets/data/filter-rules.dat}{\rules}
+    \pgfplotstableread{assets/data/filter-nat2-rules.dat}{\rulees}
+    \pgfplotstableread{assets/data/filter-nat4-rules.dat}{\ruleeees}
+    \pgfplotstableread{assets/data/filter-rules-targeted.dat}{\ruls}
+
+    \begin{tikzpicture}[scale=0.72]
+      \begin{axis}[
+          xmode=log,
+          ymin=0,
+          ymax=100,
+          xlabel=Rules,
+          ylabel=Verification time (s),
+          ylabel near ticks,
+          legend pos=north west,
+        ]
+        \addplot[mark=*] table [x={rules}, y={time}] {\rules};
+        \addlegendentry{filter};
+
+        \addplot[mark=square*,color=red] table [x={rules}, y={time}] {\rulees};
+        \addlegendentry{filter+nat(2)};
+
+        \addplot[mark=diamond*,color=blue] table [x={rules}, y={time}] {\ruleeees};
+        \addlegendentry{filter+nat(2)+mangle(4)};
+
+        \addplot[mark=triangle*,color=magenta] table [x={rules}, y={time}] {\ruls};
+        \addlegendentry{filter (targeted)};
+      \end{axis}
+    \end{tikzpicture}
+  \end{column}
+  \begin{column}{.5\textwidth}
+    \vspace*{0.15cm}
+    \pgfplotstableread{assets/data/network-depth10.dat}{\depthone}
+    \pgfplotstableread{assets/data/network-depth20.dat}{\depthtwo}
+    \pgfplotstableread{assets/data/network-depth50.dat}{\depthfive}
+
+    \begin{tikzpicture}[scale=0.72]
+      \begin{axis}[
+          ymin=0,
+          ymax=100,
+          xlabel=Network depth,
+          yticklabels={,,},
+          legend pos=north west,
+        ]
+        \addplot[mark=*,color=black] table [x={depth}, y={time}] {\depthone};
+        \addlegendentry{10 rules};
+
+        \addplot[mark=square*,color=red] table [x={depth}, y={time}] {\depthtwo};
+        \addlegendentry{20 rules};
+
+        \addplot[mark=triangle*,color=blue] table [x={depth}, y={time}] {\depthfive};
+        \addlegendentry{50 rules};
+      \end{axis}
+    \end{tikzpicture}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Conclusion and Future Work}
+\end{frame}
+
 \begin{frame}{Keywords}
 \begin{columns}
   \begin{column}{0.5\textwidth}
     \centering
     \begin{itemize}
       \item network verification
-      \item iptables
+      \item iptables/netfilter
       \item symbolic execution
+      \item compiler design
+      \item extension focused
     \end{itemize}
   \end{column}
   \begin{column}{0.5\textwidth}
@@ -53,6 +145,7 @@ Verification}
     \begin{itemize}
       \item SymNet
       \item SEFL
+      \item \emph{iptables-to-sefl}
       \item Scala
     \end{itemize}
   \end{column}
