@@ -67,20 +67,21 @@ Verification}
   \includegraphics[scale=0.2]{assets/img/pres-data-plane-snapshot}
 \end{frame}
 
-\begin{frame}[t]{Static Data Plane Verification - Framework}
+\begin{frame}{Static Data Plane Verification - Framework}
   \begin{columns}
     \begin{column}{.6\textwidth}
       \begin{itemize}
         \item SymNet
           \begin{itemize}
-            \item network analysis tool based on \textbf{symbolic execution}
-            \item \emph{inputs}: SEFL network model and bootstrapping
+            \item[--] network analysis tool based on \textbf{symbolic
+              execution}
+            \item[--] \emph{inputs}: SEFL network model and bootstrapping
               (symbolic) packet
-            \item \emph{output}: exhaustive list of packet flows
+            \item[--] \emph{output}: exhaustive list of packet flows
           \end{itemize}
         \item SEFL (Symbolic Execution Friendly Language)
           \begin{itemize}
-            \item used to model network elements as \textbf{flow
+            \item[--] used to model network elements as \textbf{flow
               transformations}
           \end{itemize}
         \item Properties: memory safe, \textbf{scalable}
@@ -96,8 +97,8 @@ Verification}
 
 \begin{frame}{Overview of iptables}
   \begin{itemize}
-    \item Tool used for packet filtering, NAT, mangling
-    \item Based on \emph{netfilter} (Linux kernel framework)
+    \item CLI tool used to configure packet filtering, NAT, mangling
+    \item Built on top of \emph{netfilter} (Linux kernel framework)
     \item Organization: rules, chains, tables
   \end{itemize}
 
@@ -105,88 +106,151 @@ Verification}
   \includegraphics[scale=0.3]{assets/img/pres-iptables}
 \end{frame}
 
-\begin{frame}{Towards a Model}
+\begin{frame}[t]{Towards a Model (1)}
+  \begin{itemize}
+    \item[1.] Start from the model of a simple router
+  \end{itemize}
+
+  \vspace*{0.8cm}
+
   \centering
   \includegraphics[scale=0.35]{assets/img/router-model}
 \end{frame}
 
-\begin{frame}{Towards a Model (2)}
+\begin{frame}[t]{Towards a Model (2)}
+  \begin{itemize}
+    \item[2.] Replicate the routing decision element
+  \end{itemize}
+
+  \vspace*{0.8cm}
+
   \centering
   \includegraphics[scale=0.35]{assets/img/iptables-1}
 \end{frame}
 
-\begin{frame}{Towards a Model (3)}
+\begin{frame}[t]{Towards a Model (3)}
+  \begin{itemize}
+    \item[3.] Abstract each chain as a new \emph{virtual element}
+  \end{itemize}
+
+  \vspace*{0.8cm}
+
   \centering
   \includegraphics[scale=0.30]{assets/img/iptables-2}
 \end{frame}
 
 \begin{frame}{Design and Implementation}
+  \begin{itemize}
+    \item \emph{iptables-to-sefl}
+    \item compiler-like design
+      \begin{itemize}
+        \item[--] parsing, validation, code generation
+      \end{itemize}
+    \item extension-oriented
+      \begin{itemize}
+        \item[--] dynamically enabled match/target extensions
+      \end{itemize}
+  \end{itemize}
+
+  \centering
+  \includegraphics[scale=0.30]{assets/img/high-level-design}
 \end{frame}
 
 \begin{frame}{Evaluation - Correctness}
+  \begin{itemize}
+    \item \emph{Are the resulting models correct?}
+    \item Do they capture the iptables/netfilter semantics they are designed
+      for?
+
+    \vspace*{0.5cm}
+
+    \item Solution: acceptance tests
+      \begin{itemize}
+        \item[--] ideally, cover all scenarios modelled (i.e. NAT, conntrack,
+          jump-return to user-chains, etc)
+      \end{itemize}
+    \item Generic testing topology:
+  \end{itemize}
+
+  \vspace*{0.3cm}
+
+  \centering
+  \includegraphics[scale=0.40]{assets/img/generic-correctness-testing}
 \end{frame}
 
 \begin{frame}{Evaluation - Performance}
-\begin{columns}
-  \begin{column}{.50\textwidth}
-    \pgfplotstableread{assets/data/filter-rules.dat}{\rules}
-    \pgfplotstableread{assets/data/filter-nat2-rules.dat}{\rulees}
-    \pgfplotstableread{assets/data/filter-nat4-rules.dat}{\ruleeees}
-    \pgfplotstableread{assets/data/filter-rules-targeted.dat}{\ruls}
+  \begin{itemize}
+    \item \emph{How fast are the resulting models verified?}
+  \end{itemize}
 
-    \begin{tikzpicture}[scale=0.72]
-      \begin{axis}[
-          xmode=log,
-          ymin=0,
-          ymax=100,
-          xlabel=Rules,
-          ylabel=Verification time (s),
-          ylabel near ticks,
-          legend pos=north west,
-        ]
-        \addplot[mark=*] table [x={rules}, y={time}] {\rules};
-        \addlegendentry{filter};
+  \vspace*{0.3cm}
 
-        \addplot[mark=square*,color=red] table [x={rules}, y={time}] {\rulees};
-        \addlegendentry{filter+nat(2)};
+  \begin{columns}
+    \begin{column}{.50\textwidth}
+      \pgfplotstableread{assets/data/filter-rules.dat}{\rules}
+      \pgfplotstableread{assets/data/filter-nat2-rules.dat}{\rulees}
+      \pgfplotstableread{assets/data/filter-nat4-rules.dat}{\ruleeees}
+      \pgfplotstableread{assets/data/filter-rules-targeted.dat}{\ruls}
 
-        \addplot[mark=diamond*,color=blue] table [x={rules}, y={time}] {\ruleeees};
-        \addlegendentry{filter+nat(2)+mangle(4)};
+      \begin{tikzpicture}[scale=0.72]
+        \begin{axis}[
+            xmode=log,
+            ymin=0,
+            ymax=100,
+            xlabel=Rules,
+            ylabel=Verification time (s),
+            ylabel near ticks,
+            legend pos=north west,
+          ]
+          \addplot[mark=*] table [x={rules}, y={time}] {\rules};
+          \addlegendentry{filter};
 
-        \addplot[mark=triangle*,color=magenta] table [x={rules}, y={time}] {\ruls};
-        \addlegendentry{filter (targeted)};
-      \end{axis}
-    \end{tikzpicture}
-  \end{column}
-  \begin{column}{.5\textwidth}
-    \vspace*{0.15cm}
-    \pgfplotstableread{assets/data/network-depth10.dat}{\depthone}
-    \pgfplotstableread{assets/data/network-depth20.dat}{\depthtwo}
-    \pgfplotstableread{assets/data/network-depth50.dat}{\depthfive}
+          \addplot[mark=square*,color=red] table [x={rules}, y={time}] {\rulees};
+          \addlegendentry{filter+nat(2)};
 
-    \begin{tikzpicture}[scale=0.72]
-      \begin{axis}[
-          ymin=0,
-          ymax=100,
-          xlabel=Network depth,
-          yticklabels={,,},
-          legend pos=north west,
-        ]
-        \addplot[mark=*,color=black] table [x={depth}, y={time}] {\depthone};
-        \addlegendentry{10 rules};
+          \addplot[mark=diamond*,color=blue] table [x={rules}, y={time}] {\ruleeees};
+          \addlegendentry{filter+nat(2)+mangle(4)};
 
-        \addplot[mark=square*,color=red] table [x={depth}, y={time}] {\depthtwo};
-        \addlegendentry{20 rules};
+          \addplot[mark=triangle*,color=magenta] table [x={rules}, y={time}] {\ruls};
+          \addlegendentry{filter (targeted)};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \vspace*{0.15cm}
+      \pgfplotstableread{assets/data/network-depth10.dat}{\depthone}
+      \pgfplotstableread{assets/data/network-depth20.dat}{\depthtwo}
+      \pgfplotstableread{assets/data/network-depth50.dat}{\depthfive}
 
-        \addplot[mark=triangle*,color=blue] table [x={depth}, y={time}] {\depthfive};
-        \addlegendentry{50 rules};
-      \end{axis}
-    \end{tikzpicture}
-  \end{column}
-\end{columns}
+      \begin{tikzpicture}[scale=0.72]
+        \begin{axis}[
+            ymin=0,
+            ymax=100,
+            xlabel=Network depth,
+            yticklabels={,,},
+            legend pos=north west,
+          ]
+          \addplot[mark=*,color=black] table [x={depth}, y={time}] {\depthone};
+          \addlegendentry{10 rules};
+
+          \addplot[mark=square*,color=red] table [x={depth}, y={time}] {\depthtwo};
+          \addlegendentry{20 rules};
+
+          \addplot[mark=triangle*,color=blue] table [x={depth}, y={time}] {\depthfive};
+          \addlegendentry{50 rules};
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
 \end{frame}
 
-\begin{frame}{Conclusion and Future Work}
+\begin{frame}{Conclusion}
+  \begin{itemize}
+    \item What did I do?
+    \item What did I obtain?
+    \item How good is what I obtained?
+    \item What is next?
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Keywords}
