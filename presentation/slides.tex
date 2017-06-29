@@ -42,15 +42,67 @@ Verification}
 \frame{\titlepage}
 
 \begin{frame}{Motivation}
+  \begin{itemize}
+    \item Computer networks are increasingly complex
+    \item More and more network functions implemented in software
+      \begin{itemize}
+        \item[--] Network Function Virtualization - a promising trend
+      \end{itemize}
+    \item iptables - central to x86/Linux-based packet processing
+      \begin{itemize}
+        \item[--] used heavily by OpenStack's Neutron
+      \end{itemize}
+
+    \pause
+    \vspace*{0.7cm}
+
+    \item The (general) \textbf{problem} (\emph{network verification}): ensure
+      the network complies to a policy
+    \item The (specific) \textbf{objective}: verify iptables-enabled networks
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Static Data Plane Verification}
+  \centering
+  \includegraphics[scale=0.2]{assets/img/pres-data-plane-snapshot}
 \end{frame}
 
-\begin{frame}{SymNet and SEFL}
+\begin{frame}[t]{Static Data Plane Verification - Framework}
+  \begin{columns}
+    \begin{column}{.6\textwidth}
+      \begin{itemize}
+        \item SymNet
+          \begin{itemize}
+            \item network analysis tool based on \textbf{symbolic execution}
+            \item \emph{inputs}: SEFL network model and bootstrapping
+              (symbolic) packet
+            \item \emph{output}: exhaustive list of packet flows
+          \end{itemize}
+        \item SEFL (Symbolic Execution Friendly Language)
+          \begin{itemize}
+            \item used to model network elements as \textbf{flow
+              transformations}
+          \end{itemize}
+        \item Properties: memory safe, \textbf{scalable}
+      \end{itemize}
+    \end{column}
+
+    \begin{column}{.4\textwidth}
+      \centering
+      \includegraphics[scale=0.13]{assets/img/pres-symnet-sefl}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Overview of iptables}
+  \begin{itemize}
+    \item Tool used for packet filtering, NAT, mangling
+    \item Based on \emph{netfilter} (Linux kernel framework)
+    \item Organization: rules, chains, tables
+  \end{itemize}
+
+  \centering
+  \includegraphics[scale=0.3]{assets/img/pres-iptables}
 \end{frame}
 
 \begin{frame}{Towards a Model}
@@ -134,10 +186,10 @@ Verification}
     \centering
     \begin{itemize}
       \item network verification
-      \item iptables/netfilter
       \item symbolic execution
-      \item compiler design
-      \item extension focused
+      \item iptables/netfilter
+      \item compiler-like design
+      \item extension-oriented
     \end{itemize}
   \end{column}
   \begin{column}{0.5\textwidth}
