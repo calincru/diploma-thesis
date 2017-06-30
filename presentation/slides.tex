@@ -45,9 +45,9 @@ Verification}
   \begin{itemize}
     \item Computer networks are increasingly complex
     \item More and more network functions implemented in software
-      \begin{itemize}
-        \item[--] Network Function Virtualization - a promising trend
-      \end{itemize}
+      % \begin{itemize}
+      %   \item[--] Network Function Virtualization - a promising trend
+      % \end{itemize}
     \item iptables - central to x86/Linux-based packet processing
       \begin{itemize}
         \item[--] used heavily by OpenStack's Neutron
@@ -159,15 +159,14 @@ Verification}
 \begin{frame}{Evaluation - Correctness}
   \begin{itemize}
     \item \emph{Are the resulting models correct?}
-    \item Do they capture the iptables/netfilter semantics they are designed
-      for?
+    \item Do they capture the iptables semantics they are designed for?
 
     \vspace*{0.5cm}
 
     \item Solution: acceptance tests
       \begin{itemize}
         \item[--] ideally, cover all scenarios modelled (i.e. NAT, conntrack,
-          jump-return to user-chains, etc)
+          jump/return to/from user-chains, etc)
       \end{itemize}
     \item Generic testing topology:
   \end{itemize}
@@ -180,7 +179,7 @@ Verification}
 
 \begin{frame}{Evaluation - Performance}
   \begin{itemize}
-    \item \emph{How fast are the resulting models verified?}
+    \item \emph{Are the resulting models fast to verify?}
   \end{itemize}
 
   \vspace*{0.3cm}
@@ -246,10 +245,17 @@ Verification}
 
 \begin{frame}{Conclusion}
   \begin{itemize}
-    \item What did I do?
-    \item What did I obtain?
-    \item How good is what I obtained?
-    \item What is next?
+    % \item What did I do?
+    \item iptables-to-sefl: models iptables configurations using SEFL
+    \pause
+    % \item What did I obtain?
+    \item Increased spectrum of network deployments that can be verified
+    \pause
+    % \item How good is what I obtained?
+    \item Focused on correctness and coverage of commonly used extensions
+    \pause
+    % \item What is next?
+    \item Performance tunning, OpenStack integration
   \end{itemize}
 \end{frame}
 
@@ -263,6 +269,7 @@ Verification}
       \item iptables/netfilter
       \item compiler-like design
       \item extension-oriented
+      \item model correctness
     \end{itemize}
   \end{column}
   \begin{column}{0.5\textwidth}
