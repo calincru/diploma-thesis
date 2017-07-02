@@ -1,7 +1,3 @@
-# TODO
-* definitie middlebox
-* functie cu acelasi domeniu si codomeniu
-
 # Motivation
 Incepem cu 2 observatii legate de retelele de calculatoare moderne.
 
@@ -54,9 +50,9 @@ este o lista exhaustiva de pachete generate alaturi de constrangerile acestora.
 Modelele retelelor sunt construite folosind SEFL.  Acesta este un DSL proiectat
 impreuna cu SymNet cu scopul de a scadea pe cat de mult posibil complexitatea
 executiei simbolice.  Instructiunile sale permit exprimarea functiilor uzuale
-de retea ca transformari ale flow-urilor.  Exprima practic o functie <> in
-spatiul pachetelor: se primeste un pachet pe un port, se aplica o functie, se
-returneaza un alt pachet.
+de retea ca transformari ale flow-urilor.  Matematic, acestea sunt endomorfisme
+in spatiul pachetelor: se primeste un pachet pe un port, se aplica o functie,
+se returneaza un alt pachet.
 
 Sistemul care rezulta se dovedeste a avea cateva proprietati foarte
 interesante, insa probabil cea mai importanta este faptul ca este scalabil *cat
