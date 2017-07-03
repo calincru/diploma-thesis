@@ -2,14 +2,14 @@
 Incepem cu 2 observatii legate de retelele de calculatoare moderne.
 
 In primul rand, sunt foarte complexe iar acest lucru face ca functionalitatea
-lor corecta sa nu mai fie certa.  O mare parte din cauza acestei cresteri in
+lor corecta sa nu poata fi certa.  O mare parte din cauza acestei cresteri in
 complexitate se datoreaza middlebox-urilor care sunt tot mai comune.  Intr-un
-mod informal, middlebox-urile sunt echipamente destinate altui scop decat
-transmiterea pachetelor de la sursa la destinatie.
+mod informal, middlebox-urile sunt echipamente care proceseaza trafic cu alt
+scop decat comutarea lor catre destinatie.
 
 Asta ne aduce la a doua observatie, si anume ca tot mai multe elemente din
-retelele moderne, in special cele cu functie de de middlebox, sunt implementare
-in software, pe arhitecturi precum x86, in locul echipamentelor dedicate.  Pe
+retelele moderne, in special cele cu functie de middlebox, sunt implementare in
+software, pe arhitecturi precum x86, in locul echipamentelor dedicate.  Pe
 multe dintre acele sisteme care ruleaza Linux, iptables este un tool de baza
 pentru configurarea procesarii pachetelor, osciland ca si complexitate intre
 firewal-uri minimale pana la intregi componente de networking virtualizate, cum
@@ -18,8 +18,8 @@ e cazul Neutron, componenta de networking a OpenStack.
 In acest context, se pune problema corectitudinii retelelor.  Cu alte cuvinte,
 vrem sa stim daca reteaua noastra respecta anumite reguli, care impreuna
 formeaza politica pe care vrem sa o impunem.  In aceasta lucrare obiectivul
-specific din cadrul acestei tentative largi este modelarea iptables cu scopul
-verificarii retelelor care sunt bazate pe acesta.
+specific din cadrul acestei initiative mai largi este modelarea iptables cu
+scopul verificarii retelelor care sunt bazate pe acesta.
 
 # Static Data Plane Verification
 Ideea pe care se bazeaza abordarea noastra pentru verificarea retelelor are
@@ -39,20 +39,18 @@ poate spune daca politica noastra este sau nu respectata; spre exemplu, daca
 utilizatorul A poate stabili o conexiune cu serverul B.
 
 # Static Data Plane Verification - Framework
-Acum ca avem ideea high-level a sistemului, putem fi putin mai precisi.
-
-Motorul de verificare pe care il folosim este SymNet.  Acesta foloseste
-executie simbolica, o tehnica de analiza statica folosita in verificarea
-programelor.  Inputul este modelul retelei, asa cum se poate vedea si in figura,
-alaturi de un pachet cu care sa poata fi inceputa executia simbolica.  Outputul
-este o lista exhaustiva de pachete generate alaturi de constrangerile acestora.
+Pentru a fi mai specifici, motorul de verificare pe care il folosim este
+SymNet.  Acesta foloseste executie simbolica, o tehnica de analiza statica
+folosita in verificarea programelor.  SymNet primeste ca input un model al
+retelei si un pachet cu care sa poata incepe executia simbolica, iar la output
+ne da o lista exhaustiva de pachete generate alaturi de constrangerile
+acestora.
 
 Modelele retelelor sunt construite folosind SEFL.  Acesta este un DSL proiectat
 impreuna cu SymNet cu scopul de a scadea pe cat de mult posibil complexitatea
 executiei simbolice.  Instructiunile sale permit exprimarea functiilor uzuale
-de retea ca transformari ale flow-urilor.  Matematic, acestea sunt endomorfisme
-in spatiul pachetelor: se primeste un pachet pe un port, se aplica o functie,
-se returneaza un alt pachet.
+de retea ca transformari ale flow-urilor: se primeste un pachet pe un port, se
+aplica o functie, se returneaza un alt pachet.
 
 Sistemul care rezulta se dovedeste a avea cateva proprietati foarte
 interesante, insa probabil cea mai importanta este faptul ca este scalabil *cat
@@ -60,9 +58,9 @@ timp* modelele sunt, sa spunem, fine-tuned.  Acest lucru ne motiveaza de altfel
 sa vrem sa modelam retele din ce in ce mai complexe.
 
 # Overview of iptables
-Revenind la iptables, acesta este un tool de configurare a tabelelor de reguli
-expuse de netfilter, un framework customizabil de procesare a pachetelor ce
-face parte din kernelul Linux.
+Ce este mai exact iptables?  iptables este un tool de configurare a tabelelor
+de reguli expuse de netfilter, un framework customizabil de procesare a
+pachetelor ce face parte din kernelul Linux.
 
 Feature-ul sau cel mai important este tocmai aceasta customizabilitate, data de
 organizarea interna.  Elementul de baza este *regula*, care precizeaza *pe ce*
@@ -72,8 +70,8 @@ exemplu FORWARD pentru pachete care tranziteaza device-ul), iar *tabelele*
 restrictioneaza *ce* se poate face cu traficul respectiv (spre exemplu in
 filter se poate face doar ACCEPT si DROP).
 
-Pastrand in minte acest flowgraph, ne proppunem sa construim un model SEFL care
-sa il imite.
+Pastrand in minte acest flowgraph, ne propunem sa construim un model SEFL care
+sa aiba o structura asemanatoare.
 
 # Towards a Model (1)
 Pornim de la modelul unui simplu router.  Indiferent de portul de intrare pe
@@ -81,15 +79,16 @@ care ajunge un pachet, scopul routerului este de a-l ruta.  Astfel ca legam
 porturile de intrare la un "element" ascuns, numit aici 'routing decision'.
 Acest element are rolul de a implementa in SEFL logica pentru routarea
 pachetelor catre unul dintre porturile de iesire sau catre nivele superioare
-ale stivei, daca pachetul ii este destinat.  In general, simbolizam
-posibilitatea existentei unor instructiuni SEFL folosind aceste box-uri.
+ale stivei, daca pachetul ii este destinat.  In general, aceste box-uri
+simbolizeaza tocmai faptul ca ele ascund o posibila logica exprimata in SEFL,
+alaturi de posibile alte legaturi intre porturi interne.
 
 # Towards a Model (2)
-Pentru a ne indrepta catre flowgraph-ul anterior care descria functionalitatea
-iptables, replicam componenta care implementeaza decizia de routare in 3
-locuri: pentru pachetele tocmai ajunse din retea, pentru pachetele tocmai
-generate de acest device, si pentru pachetele care se pregatesc sa paraseasca
-acest device.
+Pentru a ne apropia de structura flowgraph-ului anterior care descria
+functionalitatea iptables, replicam componenta care implementeaza decizia de
+routare in 3 locuri: pentru pachetele tocmai ajunse din retea, pentru pachetele
+tocmai generate de acest device, si pentru pachetele care se pregatesc sa
+paraseasca acest device.
 
 # Towards a Model (3)
 In cele din urma, tot ce mai ramane de facut este sa adaugam un nou element
@@ -105,11 +104,11 @@ implementeaza in SEFL o secventa if/then/else, unde conditiile sunt date de
 regulilor (ACCEPT, SNAT, etc).
 
 # Design and Implementation
-In ceea ce priveste implementarea, tool-ul rezultat, numit, natural,
-iptables-to-sefl, primeste ca input un fisier ce contine un dump al regulilor
-iptables si returneaza un model, care apoi, impreuna cu modele ale altor
-elemente din retea precum si conexiunile dintre acestea, sunt trimise catre
-SymNet.
+In ceea ce priveste implementarea, tool-ul rezultat, numit, asa cum era de
+asteptat, iptables-to-sefl, primeste ca input un fisier ce contine un dump al
+regulilor iptables si returneaza un model, care apoi, impreuna cu modele ale
+altor elemente din retea precum si conexiunile dintre acestea, sunt trimise
+catre SymNet.
 
 Intern, tool-ul are un design de compilator, cu faze de *parsare* a regulilor,
 *validarea* lor, echivalentul analizei semantice in compilatoarele usuale, si
@@ -118,12 +117,12 @@ multiplelor componente interne, cum am vazut in diagrama anterioara a
 modelului.
 
 Pe langa asta, am avut in vedere numarul mare de extensii pentru match-uri si
-target-uri ale iptables, asa ca design-ul face usor adaugarea suportului pentru
-noi extensii.
+target-uri ale iptables, asa ca design-ul face usoara adaugarea suportului
+pentru noi extensii.
 
 # Evaluation - Correctness
 Evaluarea este impartita in doua categorii: evaluarea corectitudinii modelelor
-si evaluarea performantei verificarii acestora.
+si evaluarea eficientei verificarii acestora.
 
 Prima ne ajuta sa raspundem la intrebarea "Sunt modelele generate de noi
 corecte?".  Cu alte cuvinte, surprind ele semantica iptables pentru care au
@@ -167,11 +166,11 @@ de retea modelate pana acum.
 In concluzie, *ceea ce am realizat* este un tool care modeleaza configuratii
 iptables folosind SEFL.
 
-*Ceea ce obtinem* este un spectru crescut de configuratii de retele pe care le
-putem verifica folosind SymNet.
+*Ceea ce obtinem* este un spectru crescut de configuratii pe care le putem
+verifica folosind SymNet.
 
 In privinta *calitatii implementarii*, putem spune ca ne-am concentrat in
-special pe corectitudinea modelelor generate si pe modelarea extensiilor
-folosite in general in practica, *urmand* ca *in viitor* sa ne concentram pe
+special pe corectitudinea modelelor generate si pe modelarea extensiilor care
+sunt foarte comune in practica, *urmand* ca *in viitor* sa ne concentram pe
 optimizarea modelelor si al codului generat, precum si pe integrarea intr-un
 model al OpenStack, care este un proiect in desfasurare.
